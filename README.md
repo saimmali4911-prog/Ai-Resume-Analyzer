@@ -1,64 +1,68 @@
-# ResumeAI – Flask + MySQL + scikit-learn Resume Analyzer
+# ResumeAI – Decoupled Full-Stack Resume Analyzer
 
-## Tech Stack
-- **Backend**: Python + Flask
-- **Database**: MySQL (via PyMySQL + Flask-SQLAlchemy) · SQLite fallback for dev (`USE_SQLITE=1`)
-- **Frontend**: HTML, CSS, JavaScript (Bootstrap 5.3, Bootstrap Icons, Chart.js, Inter font)
-- **NLP/Analysis**: scikit-learn (TF-IDF + cosine similarity) for job matching and keyword extraction
-- **File parsing**: PyMuPDF (`fitz`) for PDF, `python-docx` for DOCX
-- **Auth**: Flask-Login + Werkzeug password hashing
-- **Forms**: Flask-WTF / WTForms
+Decoupled architecture featuring a Flask REST API backend and a standalone, static frontend deployable to Vercel or Netlify.
 
-## Project Structure
+---
+
+## Architecture Overview
+
 ```
-app.py               # Main Flask application & routes
-config.py            # Configuration (MySQL / SQLite)
-models.py            # SQLAlchemy models
-forms.py             # WTForms form classes
-services/
-  extract.py         # PDF/DOCX text extraction
-  rules.py           # ATS rule-based checks
-  nlp.py             # TF-IDF + cosine similarity analysis
-templates/           # Jinja2 templates (same design as Django version)
-static/
-  css/style.css      # Styles (copied from Django project)
-  js/app.js          # Frontend JS (Flask-adapted)
-media/               # Uploaded resume files
-requirements.txt
-.env.example
+resume_analyzer_flask/
+├── backend/                  # Flask REST API
+│   ├── app.py                # Main Flask REST API & CORS configuration
+│   ├── config.py             # Config (MySQL + SQLite fallback)
+│   ├── models.py             # SQLAlchemy models with .to_dict() serialization
+│   ├── services/             # Core NLP & Extraction services
+│   │   ├── extract.py        # PDF (PyMuPDF) and DOCX (python-docx) extraction
+│   │   ├── rules.py          # Rule-based ATS formatting & structure checks
+│   │   └── nlp.py            # scikit-learn TF-IDF + cosine similarity
+│   ├── media/                # Storage for user-uploaded resumes
+│   ├── requirements.txt      # Python dependencies
+│   ├── .env                  # Environment variables
+│   └── .env.example          # Example environment configuration
+│
+├── frontend/                 # Decoupled Static Frontend (Vercel/Netlify ready)
+│   ├── index.html            # Landing page
+│   ├── login.html            # User login page
+│   ├── register.html         # User registration page
+│   ├── dashboard.html        # Interactive dashboard with Chart.js
+│   ├── upload.html           # Drag & drop upload, text extraction & management
+│   ├── tool.html             # Multi-tool runner (Analysis, ATS, Match, Improve)
+│   ├── history.html          # Full analysis history table
+│   ├── profile.html          # User profile settings
+│   ├── css/
+│   │   └── style.css         # Custom Bootstrap 5 theme & styling
+│   ├── js/
+│   │   ├── api.js            # Centralized API client (fetch with credentials/tokens)
+│   │   └── app.js            # Frontend logic, Chart.js graphs, UI state
+│   └── vercel.json           # Vercel deployment configuration
+│
+├── .gitignore
+└── README.md
 ```
 
-## Quick Start
+---
 
-### 1. Install dependencies
+## 1. Backend Setup & Run
+
+### Install Dependencies
 ```bash
+cd backend
 pip install -r requirements.txt
 ```
 
-### 2. Configure environment
-```bash
-# Copy example and edit as needed
-copy .env.example .env
+### Environment Configuration
+The `.env` file comes preconfigured with SQLite fallback (`USE_SQLITE=1`):
+```ini
+SECRET_KEY=dev-secret-key-resume-analyzer-2026
+DEBUG=1
+USE_SQLITE=1
+MAX_UPLOAD_MB=5
+PORT=5000
 ```
 
-The default `.env` uses **SQLite** (`USE_SQLITE=1`) — no MySQL setup needed for development.
-
-### 3. Run the app
-```bash
-python app.py
-```
-
-Visit http://127.0.0.1:5000
-
-## MySQL Setup (Production)
-
-1. Create database:
-```sql
-CREATE DATABASE resume_analyzer CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-2. Update `.env`:
-```
+To switch to MySQL in production, set:
+```ini
 USE_SQLITE=0
 DB_NAME=resume_analyzer
 DB_USER=root
@@ -67,25 +71,65 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 ```
 
-3. Tables are created automatically on first run via `db.create_all()`.
+### Start the Backend
+```bash
+cd backend
+python app.py
+```
+Backend API will be running on `http://127.0.0.1:5000`.
 
-## Features
-| Feature | Method |
-|---------|--------|
-| Resume Score | Rule-based section detection + TF-IDF keyword analysis |
-| ATS Checker | Rule-based formatting checks (60%) + TF-IDF keyword density (40%) |
-| Job Matching | TF-IDF cosine similarity between resume and job description |
-| Improvement Suggestions | Keyword gap analysis + action verb recommendations |
-| File Upload | PDF (PyMuPDF) + DOCX (python-docx) with magic-byte validation |
-| Auth | Flask-Login + Werkzeug `pbkdf2:sha256` password hashing |
-| CSRF Protection | Flask-WTF on all forms |
+---
 
-## Migration from Django
-Key changes from the original Django version:
-- Django ORM → SQLAlchemy (Flask-SQLAlchemy)
-- Django auth → Flask-Login + Werkzeug
-- Django forms → Flask-WTF / WTForms
-- `{% url %}` → `{{ url_for() }}`
-- `{% static %}` → `{{ url_for('static', filename=...) }}`
-- `{% csrf_token %}` → `{{ form.hidden_tag() }}` or manual `<input name="csrf_token">`
-- Gemini AI → scikit-learn TF-IDF + cosine similarity
+## 2. Frontend Setup & Run
+
+The `frontend/` directory is 100% static (HTML, CSS, JS) and connects to `http://127.0.0.1:5000` by default.
+
+### Run Locally
+Serve the `frontend/` directory with any static server:
+```bash
+# Option A: Python simple HTTP server
+cd frontend
+python -m http.server 3000
+
+# Option B: Node http-server / npx serve
+npx serve frontend
+
+# Option C: VS Code Live Server
+# Right click frontend/index.html -> "Open with Live Server"
+```
+Then visit `http://localhost:3000`.
+
+---
+
+## 3. Deploying Frontend to Vercel / Netlify
+
+### Vercel
+1. Set the Root Directory to `frontend`.
+2. Vercel automatically detects the static HTML files and applies `vercel.json` with clean URLs.
+3. If your backend is hosted separately (e.g. Railway, Render, Fly.io), specify `window.API_BASE_URL` or store it in `localStorage.setItem('API_BASE_URL', 'https://your-api.domain.com')`.
+
+### Netlify
+1. Publish directory: `frontend`.
+2. Connect backend URL as needed.
+
+---
+
+## 4. REST API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | Service health check |
+| `POST` | `/api/auth/register` | Register new user, returns token & user profile |
+| `POST` | `/api/auth/login` | Login user, returns token & user profile |
+| `POST` | `/api/auth/logout` | Invalidate user session |
+| `GET` | `/api/auth/me` | Current user profile & resume statistics |
+| `PUT` | `/api/auth/profile` | Update user names, email, phone, role, bio |
+| `GET` | `/api/resumes` | List current user's uploaded resumes |
+| `POST` | `/api/resumes/upload` | Multipart upload (PDF/DOCX), validates & extracts text |
+| `GET` | `/api/resumes/<id>/text` | Get extracted text for a resume |
+| `GET` | `/api/resumes/<id>/file` | Download original uploaded file |
+| `DELETE` | `/api/resumes/<id>` | Delete resume & associated analyses |
+| `POST` | `/api/analysis/run/<kind>` | Run `analysis`, `ats`, `match`, or `improve` |
+| `GET` | `/api/analysis/history` | List all past analyses sorted by date |
+| `GET` | `/api/analysis/<kind>/<id>` | Get specific analysis result |
+| `GET` | `/api/dashboard` | Dashboard stats, recent matches & chart datasets |

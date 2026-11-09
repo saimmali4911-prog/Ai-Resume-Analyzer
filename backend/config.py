@@ -1,0 +1,31 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+class Config:
+    SECRET_KEY = os.getenv('SECRET_KEY', 'resume-analyzer-secret-key-2026')
+    DEBUG = os.getenv('DEBUG', '1') == '1'
+    MAX_UPLOAD_MB = int(os.getenv('MAX_UPLOAD_MB', '5'))
+    MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
+
+    USE_SQLITE = os.getenv('USE_SQLITE', '1') == '1'
+    if USE_SQLITE:
+        SQLALCHEMY_DATABASE_URI = os.getenv(
+            'DATABASE_URL',
+            'sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3')
+        )
+    else:
+        DB_NAME = os.getenv('DB_NAME', 'resume_analyzer')
+        DB_USER = os.getenv('DB_USER', 'root')
+        DB_PASSWORD = os.getenv('DB_PASSWORD', '')
+        DB_HOST = os.getenv('DB_HOST', '127.0.0.1')
+        DB_PORT = os.getenv('DB_PORT', '3306')
+        SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4'
+
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SESSION_COOKIE_SAMESITE = 'None' if os.getenv('COOKIE_SECURE', '0') == '1' else 'Lax'
+    SESSION_COOKIE_SECURE = os.getenv('COOKIE_SECURE', '0') == '1'
+    SESSION_COOKIE_HTTPONLY = True

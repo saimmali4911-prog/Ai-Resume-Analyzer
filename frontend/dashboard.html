@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · ResumeAI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Mobile drawer button -->
+  <button class="btn btn-grad d-lg-none position-fixed m-2" style="z-index:30" id="menu">
+    <i class="bi bi-list"></i>
+  </button>
+
+  <!-- Sidebar -->
+  <aside class="side">
+    <div class="brand"><i class="bi bi-stars"></i> ResumeAI</div>
+    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <a href="upload.html"><i class="bi bi-cloud-arrow-up"></i> Upload Resume</a>
+    <a href="tool.html?kind=analysis"><i class="bi bi-graph-up"></i> Resume Analysis</a>
+    <a href="tool.html?kind=ats"><i class="bi bi-shield-check"></i> ATS Checker</a>
+    <a href="tool.html?kind=match"><i class="bi bi-bullseye"></i> Job Matching</a>
+    <a href="tool.html?kind=improve"><i class="bi bi-magic"></i> AI Improvements</a>
+    <a href="history.html"><i class="bi bi-clock-history"></i> Analysis History</a>
+    <a href="profile.html"><i class="bi bi-person-circle"></i> My Profile</a>
+    <button id="logout-btn"><i class="bi bi-box-arrow-right"></i> Logout</button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="hero-sm mb-4">
+      <h3 class="fw-bold mb-1">Welcome back, <span id="welcome-name">...</span> 👋</h3>
+      <p class="mb-3 opacity-75">Here is your resume progress at a glance.</p>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-light btn-sm rounded-pill" href="upload.html">Upload</a>
+        <a class="btn btn-light btn-sm rounded-pill" href="tool.html?kind=analysis">Analyze</a>
+        <a class="btn btn-light btn-sm rounded-pill" href="tool.html?kind=ats">ATS check</a>
+        <a class="btn btn-light btn-sm rounded-pill" href="tool.html?kind=match">Match job</a>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-xl-3">
+        <div class="cardx">
+          <small class="text-muted">Resumes uploaded</small>
+          <h2 class="fw-bold" id="stat-resumes">—</h2>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="cardx">
+          <small class="text-muted">Analyses completed</small>
+          <h2 class="fw-bold" id="stat-analyses">—</h2>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="cardx">
+          <small class="text-muted">Latest resume score</small>
+          <h2 class="fw-bold" id="stat-last-an">—</h2>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="cardx">
+          <small class="text-muted">Latest ATS score</small>
+          <h2 class="fw-bold" id="stat-last-ats">—</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts and Recent Activity -->
+    <div class="row g-3">
+      <div class="col-lg-7">
+        <div class="cardx">
+          <h6>Resume improvement progress</h6>
+          <canvas id="prog" height="130"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="cardx">
+          <h6>Recent job matches</h6>
+          <div id="recent-matches" class="mb-4">
+            <p class="text-muted">Loading matches...</p>
+          </div>
+
+          <h6>Recent resumes</h6>
+          <div id="recent-resumes">
+            <p class="text-muted">Loading resumes...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => App.initDashboard());
+  </script>
+</body>
+</html>

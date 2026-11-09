@@ -1,47 +1,37 @@
-# Byte-compiled / optimized / DLL files
+# Python bytecode & cache
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
 
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
+# Environments
 venv/
+env/
+.venv/
 ENV/
-env.bak/
-venv.bak/
 
-# Local database and media
+# Database files
 *.sqlite3
-media/resumes/*
-!media/resumes/.gitkeep
+db.sqlite3
+backend/db.sqlite3
 
-# Environment variables (secret keys, passwords)
+# Uploaded media files
+media/
+backend/media/
+!backend/media/.gitkeep
+
+# Environment files
 .env
+backend/.env
 
-# IDE and Editor files
+# IDE & OS
 .vscode/
 .idea/
+.DS_Store
+Thumbs.db
 *.swp
-*.swo
 
+# Frontend build & deployment artifacts
+.vercel/
+dist/
+build/
