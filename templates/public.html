@@ -1,0 +1,5 @@
+{% extends 'base.html' %}{% block body %}
+<nav class="navbar navbar-expand px-3 px-md-5 py-3 bg-transparent position-absolute w-100" style="z-index:5">
+ <a class="navbar-brand fw-bold text-white" href="{{ url_for('landing') }}"><i class="bi bi-stars"></i> ResumeAI</a>
+ <div class="ms-auto d-flex gap-2"><a class="btn btn-outline-light rounded-pill" href="{{ url_for('login') }}">Login</a><a class="btn btn-light rounded-pill fw-semibold" href="{{ url_for('register') }}">Get Started</a></div></nav>
+{% block content %}{% endblock %}{% endblock %}

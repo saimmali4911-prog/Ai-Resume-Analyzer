@@ -1,0 +1,12 @@
+{% extends 'app.html' %}{% block title %}Dashboard{% endblock %}{% block content %}
+<div class="hero-sm mb-4"><h3 class="fw-bold mb-1">Welcome back, {{ current_user.first_name or current_user.username }} 👋</h3><p class="mb-3 opacity-75">Here is your resume progress at a glance.</p>
+<a class="btn btn-light btn-sm rounded-pill" href="{{ url_for('upload') }}">Upload</a> <a class="btn btn-light btn-sm rounded-pill" href="{{ url_for('tool', kind='analysis') }}">Analyze</a> <a class="btn btn-light btn-sm rounded-pill" href="{{ url_for('tool', kind='ats') }}">ATS check</a> <a class="btn btn-light btn-sm rounded-pill" href="{{ url_for('tool', kind='match') }}">Match job</a></div>
+<div class="row g-3 mb-4">
+<div class="col-6 col-xl-3"><div class="cardx"><small class="text-muted">Resumes uploaded</small><h2 class="fw-bold">{{ n_resumes }}</h2></div></div>
+<div class="col-6 col-xl-3"><div class="cardx"><small class="text-muted">Analyses completed</small><h2 class="fw-bold">{{ n_analyses }}</h2></div></div>
+<div class="col-6 col-xl-3"><div class="cardx"><small class="text-muted">Latest resume score</small><h2 class="fw-bold">{{ last_an if last_an is not none else "—" }}</h2></div></div>
+<div class="col-6 col-xl-3"><div class="cardx"><small class="text-muted">Latest ATS score</small><h2 class="fw-bold">{{ last_ats if last_ats is not none else "—" }}</h2></div></div></div>
+<div class="row g-3"><div class="col-lg-7"><div class="cardx"><h6>Resume improvement progress</h6><canvas id="prog" height="130"></canvas></div></div>
+<div class="col-lg-5"><div class="cardx"><h6>Recent job matches</h6>{% for m in matches %}<div class="d-flex justify-content-between border-bottom py-2"><span>{{ m.job_title or "Job" }} <small class="text-muted">· {{ m.resume.title }}</small></span><b>{{ m.score }}%</b></div>{% else %}<p class="text-muted">No job matches yet.</p>{% endfor %}
+<h6 class="mt-4">Recent resumes</h6>{% for r in recent %}<div class="py-1">📄 {{ r.title }} <small class="text-muted">{{ r.created.strftime('%d %b %Y') }}</small></div>{% else %}<p class="text-muted">Nothing uploaded yet.</p>{% endfor %}</div></div></div>
+<script id="chart" type="application/json">{{ chart|tojson }}</script>{% endblock %}

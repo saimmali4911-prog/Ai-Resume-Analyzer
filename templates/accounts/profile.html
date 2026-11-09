@@ -1,0 +1,6 @@
+{% extends 'app.html' %}{% block title %}My Profile{% endblock %}{% block content %}
+<h3 class="fw-bold mb-3">My Profile</h3><div class="cardx" style="max-width:640px;height:auto"><p class="text-muted">Username: <b>{{ current_user.username }}</b></p>
+<form method="post">{{ uf.hidden_tag() }}
+{% for field in uf %}{% if field.widget.input_type != 'hidden' %}<div class="mb-3"><label class="form-label fw-semibold">{{ field.label.text }}</label>{{ field(**{"class": "form-control"}) }}{% for e in field.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>{% endif %}{% endfor %}
+{% for field in pf %}{% if field.widget.input_type != 'hidden' %}<div class="mb-3"><label class="form-label fw-semibold">{{ field.label.text }}</label>{{ field(**{"class": "form-control"}) }}{% for e in field.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>{% endif %}{% endfor %}
+<button class="btn btn-grad">Save changes</button></form></div>{% endblock %}

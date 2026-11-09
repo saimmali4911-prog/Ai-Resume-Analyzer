@@ -1,0 +1,5 @@
+{% extends 'public.html' %}{% block title %}Login{% endblock %}{% block content %}
+<section class="hero auth"><div class="container"><div class="cardx mx-auto text-dark" style="max-width:430px;height:auto">
+<h3 class="fw-bold mb-3">Welcome back</h3>{% include '_messages.html' %}
+<form method="post">{{ form.hidden_tag() }}{% include '_form.html' %}<button class="btn btn-grad w-100">Login</button></form>
+<div class="d-flex justify-content-between mt-3 small"><a href="#">Forgot password?</a><a href="{{ url_for('register') }}">Create account</a></div></div></div></section>{% endblock %}

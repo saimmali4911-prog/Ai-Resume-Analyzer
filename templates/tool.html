@@ -1,0 +1,12 @@
+{% extends 'app.html' %}{% block title %}{{ title }}{% endblock %}{% block content %}
+<h3 class="fw-bold">{{ title }}</h3><p class="text-muted">{{ desc }}</p>
+{% if not resumes %}<div class="alert alert-info">Upload a resume first. <a href="{{ url_for('upload') }}">Upload now</a></div>{% else %}
+<form id="toolform" class="cardx mb-4" style="height:auto" data-url="{{ url_for('run', kind=kind) }}" data-kind="{{ kind }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label class="form-label fw-semibold">Resume</label><select name="resume" class="form-select mb-3">{% for r in resumes %}<option value="{{ r.id }}" {% if sel == r.id|string %}selected{% endif %}>{{ r.title }}</option>{% endfor %}</select>
+{% if kind == 'match' %}<input name="job_title" class="form-control mb-3" placeholder="Job title (optional)" maxlength="150"><textarea name="job_description" class="form-control mb-3" rows="9" placeholder="Paste the full job description here..." required></textarea>
+{% elif kind == 'improve' %}<label class="form-label fw-semibold">Section</label><select name="section" class="form-select mb-3">{% for s in sections %}<option>{{ s }}</option>{% endfor %}</select>
+<textarea name="original" class="form-control mb-3" rows="5" placeholder="Paste the text to improve (leave empty to auto-extract this section from your resume)"></textarea>
+<textarea name="facts" class="form-control mb-3" rows="3" placeholder="Optional: real achievements / numbers you want included"></textarea>{% endif %}
+<button type="submit" class="btn btn-grad">Run Analysis</button><span class="spin d-none ms-3"><span class="spinner-border spinner-border-sm text-primary"></span> Analyzing, please wait…</span></form>
+<div id="alert"></div><div id="result"></div><script id="loaded" type="application/json">{{ loaded|tojson }}</script>{% endif %}{% endblock %}
