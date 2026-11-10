@@ -19,7 +19,12 @@ from services import nlp
 
 app = Flask(__name__)
 app.config.from_object(Config)
-
+@app.route("/", methods=["GET"])
+def home():
+    return {
+        "status": "success",
+        "message": "AI Resume Analyzer API is running!"
+    }, 200
 # Enable CORS for all routes under /api, supporting credentials and all origins
 CORS(
     app,

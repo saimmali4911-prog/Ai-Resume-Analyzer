@@ -7,15 +7,13 @@ const API = (() => {
   const STORAGE_TOKEN_KEY = 'resume_token';
   const STORAGE_USER_KEY = 'resume_user';
 
+  const DEFAULT_BACKEND_URL = 'https://ai-resume-analyzer-api-o58y.onrender.com';
+
   const getBaseUrl = () => {
     if (window.API_BASE_URL) return window.API_BASE_URL.replace(/\/+$/, '');
     const custom = localStorage.getItem('API_BASE_URL');
     if (custom) return custom.replace(/\/+$/, '');
-    const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1' || window.location.protocol === 'file:') {
-      return 'http://127.0.0.1:5000';
-    }
-    return ''; // Relative path in production if deployed behind reverse proxy
+    return DEFAULT_BACKEND_URL;
   };
 
   const getToken = () => localStorage.getItem(STORAGE_TOKEN_KEY);
@@ -68,7 +66,7 @@ const API = (() => {
     try {
       response = await fetch(url, fetchOpts);
     } catch (netErr) {
-      throw new Error(`Unable to reach backend server at ${base || window.location.origin}. Please ensure the Flask backend is running on port 5000.`);
+      throw new Error(`Unable to reach backend server at ${base || window.location.origin}. Please ensure the backend is available.`);
     }
 
     if (response.status === 401) {
