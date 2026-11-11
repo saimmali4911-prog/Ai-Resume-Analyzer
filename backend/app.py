@@ -459,6 +459,7 @@ def run_analysis(kind):
         'resume_id': resume.id,
         'resume_title': resume.title,
         'score': obj.score,
+        'engine': obj.data.get('engine', 'sklearn') if isinstance(obj.data, dict) else 'sklearn',
         'data': obj.data,
         'created': obj.created.isoformat() if obj.created else None
     })
@@ -502,6 +503,7 @@ def get_analysis_result(kind, aid):
         'resume_id': obj.resume_id,
         'resume_title': obj.resume.title,
         'score': obj.score,
+        'engine': obj.data.get('engine', 'sklearn') if isinstance(obj.data, dict) else 'sklearn',
         'data': obj.data,
         'created': obj.created.isoformat() if obj.created else None
     }

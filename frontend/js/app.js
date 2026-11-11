@@ -199,7 +199,51 @@ window.App = {
   showResult(kind, result) {
     const container = $('#result');
     if (!container) return;
-    container.innerHTML = R[kind](result.data, result.score);
+
+    const data = result.data || {};
+    const engine = data.engine || result.engine || 'sklearn';
+
+    let badgeHtml = '';
+    if (engine === 'gemini') {
+      badgeHtml = `
+        <div class="alert alert-success d-flex align-items-center justify-content-between py-2 px-3 mb-3 border-0 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #eef2ff, #f0fdf4); color: #3730a3;">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary rounded-pill px-2 py-1"><i class="bi bi-stars"></i> Gemini AI</span>
+            <span class="fw-semibold">Analyzed with Google Gemini AI</span>
+          </div>
+          <small class="text-muted d-none d-sm-inline">Deep Neural Analysis Active</small>
+        </div>
+      `;
+    } else {
+      badgeHtml = `
+        <div id="sklearn-notice" class="alert alert-warning d-flex align-items-center justify-content-between py-2 px-3 mb-3 border-0 rounded-4 shadow-sm" style="background: #fffbeb; color: #92400e; transition: opacity 0.8s ease, max-height 0.8s ease, margin 0.8s ease; overflow: hidden;">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-warning text-dark rounded-pill px-2 py-1"><i class="bi bi-cpu"></i> scikit-learn</span>
+            <span class="fw-semibold">Analyzed with scikit-learn (Offline Engine)</span>
+          </div>
+          <small class="text-muted"><i class="bi bi-hourglass-split"></i> Temporary notification</small>
+        </div>
+      `;
+    }
+
+    container.innerHTML = badgeHtml + R[kind](result.data, result.score);
+
+    // When scikit-learn is used, display the notification for a short while (6 seconds), then smoothly fade it out
+    if (engine !== 'gemini') {
+      setTimeout(() => {
+        const notice = $('#sklearn-notice');
+        if (notice) {
+          notice.style.opacity = '0';
+          notice.style.maxHeight = '0';
+          notice.style.marginTop = '0';
+          notice.style.marginBottom = '0';
+          notice.style.paddingTop = '0';
+          notice.style.paddingBottom = '0';
+          setTimeout(() => notice.remove(), 800);
+        }
+      }, 6000);
+    }
+
     setTimeout(() => {
       $$('.bar i').forEach(b => {
         b.style.width = (b.dataset.w || 0) + '%';

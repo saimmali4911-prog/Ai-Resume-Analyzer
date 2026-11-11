@@ -43,7 +43,7 @@ def _call_gemini(prompt):
         return None
 
     from google.genai import types
-    models = ['gemini-2.5-flash', 'gemini-1.5-flash']
+    models = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash']
     for m in models:
         try:
             response = client.models.generate_content(
@@ -147,6 +147,8 @@ Return a valid JSON object strictly matching this schema:
     if ai_result and isinstance(ai_result, dict) and 'overall' in ai_result:
         try:
             return {
+                'engine': 'gemini',
+                'engine_label': 'Google Gemini AI',
                 'overall': max(0, min(100, int(ai_result.get('overall', 75)))),
                 'scores': {
                     'skills': max(0, min(100, int(ai_result.get('scores', {}).get('skills', 70)))),
@@ -227,6 +229,8 @@ def _local_analyze(resume_text):
     if not has_github: improvements.append('Add your GitHub profile URL.')
 
     return {
+        'engine': 'sklearn',
+        'engine_label': 'scikit-learn (Offline Engine)',
         'overall': overall,
         'scores': {'skills': int(skill_score), 'education': int(edu_score), 'experience': int(exp_score),
                    'formatting': int(fmt_score), 'grammar': grammar_score, 'summary': int(summary_score)},
@@ -261,6 +265,8 @@ Return a valid JSON object strictly matching this schema:
     if ai_result and isinstance(ai_result, dict) and 'score' in ai_result:
         try:
             return {
+                'engine': 'gemini',
+                'engine_label': 'Google Gemini AI',
                 'score': max(0, min(100, int(ai_result.get('score', 75)))),
                 'semantic_issues': ai_result.get('semantic_issues', []),
                 'keyword_suggestions': ai_result.get('keyword_suggestions', []),
@@ -280,6 +286,8 @@ Return a valid JSON object strictly matching this schema:
     if len(found_kw) < 5: semantic_issues.append('Low keyword density for ATS scanners.')
     if not re.search(r'summary|objective', text): semantic_issues.append('Missing career summary or objective statement.')
     return {
+        'engine': 'sklearn',
+        'engine_label': 'scikit-learn (Offline Engine)',
         'score': score,
         'semantic_issues': semantic_issues,
         'keyword_suggestions': [k for k in ats_keywords if k not in text][:8],
@@ -319,6 +327,8 @@ Return a valid JSON object strictly matching this schema:
     if ai_result and isinstance(ai_result, dict) and 'match_percent' in ai_result:
         try:
             return {
+                'engine': 'gemini',
+                'engine_label': 'Google Gemini AI',
                 'match_percent': max(0, min(100, int(ai_result.get('match_percent', 50)))),
                 'required_skills': ai_result.get('required_skills', []),
                 'matching_skills': ai_result.get('matching_skills', []),
@@ -343,6 +353,8 @@ Return a valid JSON object strictly matching this schema:
     required = list(job_kw)[:20]
 
     return {
+        'engine': 'sklearn',
+        'engine_label': 'scikit-learn (Offline Engine)',
         'match_percent': match_percent,
         'required_skills': required[:15],
         'matching_skills': matching[:15],
@@ -388,6 +400,8 @@ Return a valid JSON object strictly matching this schema:
     if ai_result and isinstance(ai_result, dict) and 'improved' in ai_result:
         try:
             return {
+                'engine': 'gemini',
+                'engine_label': 'Google Gemini AI',
                 'original': original_text or f'[{section} section from your resume]',
                 'improved': ai_result.get('improved', ''),
                 'changes': ai_result.get('changes', []),
@@ -411,6 +425,8 @@ Return a valid JSON object strictly matching this schema:
     if facts:
         suggestions.insert(0, f'Incorporate these facts: {facts[:200]}')
     return {
+        'engine': 'sklearn',
+        'engine_label': 'scikit-learn (Offline Engine)',
         'original': original_text or f'[{section} section from your resume]',
         'improved': (original_text or '') + '\n\n[Rewrite tip: ' + suggestions[0] + ']',
         'changes': suggestions,
