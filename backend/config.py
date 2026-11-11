@@ -10,6 +10,7 @@ class Config:
     DEBUG = os.getenv('DEBUG', '1') == '1'
     MAX_UPLOAD_MB = int(os.getenv('MAX_UPLOAD_MB', '5'))
     MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '').strip()
 
     USE_SQLITE = os.getenv('USE_SQLITE', '1') == '1'
     if USE_SQLITE:
