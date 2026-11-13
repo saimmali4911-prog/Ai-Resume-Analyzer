@@ -19,12 +19,20 @@ class Config:
         # Supabase / Heroku often supply postgres:// which SQLAlchemy 2.0 requires as postgresql://
         if raw_db_url.startswith('postgres://'):
             raw_db_url = raw_db_url.replace('postgres://', 'postgresql://', 1)
-        # If psycopg2 is unavailable (e.g. Windows App Control policy), fallback to pure-python pg8000
-        try:
-            import psycopg2
-        except Exception:
-            if raw_db_url.startswith('postgresql://') and not raw_db_url.startswith('postgresql+'):
-                raw_db_url = raw_db_url.replace('postgresql://', 'postgresql+pg8000://', 1)
+        # Select best available PostgreSQL driver (psycopg 3, psycopg2, or pure-python pg8000)
+        if raw_db_url.startswith('postgresql://') and not raw_db_url.startswith('postgresql+'):
+            try:
+                import psycopg
+            except ImportError:
+                try:
+                    import psycopg2
+                    raw_db_url = raw_db_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
+                except ImportError:
+                    try:
+                        import pg8000
+                        raw_db_url = raw_db_url.replace('postgresql://', 'postgresql+pg8000://', 1)
+                    except ImportError:
+                        pass
         SQLALCHEMY_DATABASE_URI = raw_db_url
     elif os.getenv('USE_SQLITE', '1') == '1':
         SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3')
