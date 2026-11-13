@@ -6,9 +6,16 @@ NLP Analysis Engine:
 import os
 import re
 import json
+import math
 import logging
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from collections import Counter
+
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    SKLEARN_AVAILABLE = True
+except Exception:
+    SKLEARN_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -83,27 +90,40 @@ def _parse_json(text):
     return None
 
 def _keywords(text, n=30):
-    """Extract top N keywords from text using TF-IDF."""
-    text = re.sub(r'[^a-zA-Z0-9\s+#]', ' ', text.lower())
-    words = [w for w in text.split() if len(w) > 2 and w not in STOPWORDS]
+    """Extract top N keywords from text using TF-IDF or frequency fallback."""
+    text_clean = re.sub(r'[^a-zA-Z0-9\s+#]', ' ', text.lower())
+    words = [w for w in text_clean.split() if len(w) > 2 and w not in STOPWORDS]
     if not words:
         return []
-    try:
-        vec = TfidfVectorizer(ngram_range=(1, 2), max_features=200)
-        vec.fit([' '.join(words)])
-        scores = dict(zip(vec.get_feature_names_out(), vec.idf_))
-        return sorted(scores, key=scores.get)[:n]
-    except Exception:
-        return list(set(words))[:n]
+    if SKLEARN_AVAILABLE:
+        try:
+            vec = TfidfVectorizer(ngram_range=(1, 2), max_features=200)
+            vec.fit([' '.join(words)])
+            scores = dict(zip(vec.get_feature_names_out(), vec.idf_))
+            return sorted(scores, key=scores.get)[:n]
+        except Exception:
+            pass
+    # Pure Python frequency-based keyword ranking
+    counts = Counter(words)
+    return [w for w, _ in counts.most_common(n)]
 
 def _similarity(text1, text2):
     """Cosine similarity between two texts."""
-    try:
-        vec = TfidfVectorizer()
-        tfidf = vec.fit_transform([text1, text2])
-        return float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
-    except Exception:
-        return 0.0
+    if SKLEARN_AVAILABLE:
+        try:
+            vec = TfidfVectorizer()
+            tfidf = vec.fit_transform([text1, text2])
+            return float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
+        except Exception:
+            pass
+    # Pure Python vector cosine similarity
+    w1 = Counter(re.findall(r'\w+', text1.lower()))
+    w2 = Counter(re.findall(r'\w+', text2.lower()))
+    inter = set(w1) & set(w2)
+    num = sum(w1[x] * w2[x] for x in inter)
+    d1 = math.sqrt(sum(v**2 for v in w1.values()))
+    d2 = math.sqrt(sum(v**2 for v in w2.values()))
+    return float(num / (d1 * d2)) if d1 and d2 else 0.0
 
 # ============================================================================
 # 1. Resume Analysis
