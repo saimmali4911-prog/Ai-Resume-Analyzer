@@ -11,6 +11,8 @@ class Config:
     MAX_UPLOAD_MB = int(os.getenv('MAX_UPLOAD_MB', '5'))
     MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'media'))
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '').strip()
+    SUPABASE_URL = os.getenv('SUPABASE_URL', os.getenv('NEXT_PUBLIC_SUPABASE_URL', '')).strip()
+    SUPABASE_KEY = os.getenv('SUPABASE_KEY', os.getenv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', '')).strip()
 
     raw_db_url = os.getenv('DATABASE_URL', '').strip()
     if raw_db_url:

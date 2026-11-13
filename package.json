@@ -1,0 +1,25 @@
+{
+  "name": "resume_analyzer_flask",
+  "version": "1.0.0",
+  "description": "Decoupled architecture featuring a Flask REST API backend and a standalone, static frontend deployable to Vercel or Netlify.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saimmali4911-prog/Ai-Resume-Analyzer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/saimmali4911-prog/Ai-Resume-Analyzer/issues"
+  },
+  "homepage": "https://github.com/saimmali4911-prog/Ai-Resume-Analyzer#readme",
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0"
+  }
+}
