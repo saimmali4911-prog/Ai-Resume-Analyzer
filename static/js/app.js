@@ -1,5 +1,5 @@
 /**
- * ResumeAI Application Logic & UI Handlers
+ * ResumeXpert AI Application Logic & UI Handlers
  */
 
 // DOM Helpers

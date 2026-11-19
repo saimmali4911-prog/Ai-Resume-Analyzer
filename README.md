@@ -1,4 +1,4 @@
-# ResumeAI – Decoupled Full-Stack Resume Analyzer
+# ResumeXpert AI – Decoupled Full-Stack Resume Analyzer
 
 Decoupled architecture featuring a Flask REST API backend and a standalone, static frontend deployable to Vercel or Netlify.
 

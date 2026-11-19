@@ -23,7 +23,7 @@ app.config.from_object(Config)
 def home():
     return {
         "status": "success",
-        "message": "AI Resume Analyzer API is running!"
+        "message": "ResumeXpert AI API is running!"
     }, 200
 # Enable CORS for all routes under /api, supporting credentials and all origins
 CORS(
@@ -106,7 +106,7 @@ def allowed_file(filename, content_bytes=b''):
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    return jsonify({'status': 'ok', 'service': 'Resume Analyzer API', 'time': datetime.now(timezone.utc).isoformat()})
+    return jsonify({'status': 'ok', 'service': 'ResumeXpert AI API', 'time': datetime.now(timezone.utc).isoformat()})
 
 @app.route('/api/auth/register', methods=['POST'])
 def register():

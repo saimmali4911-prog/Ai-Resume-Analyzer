@@ -1,5 +1,5 @@
 /**
- * ResumeAI Centralized API Client
+ * ResumeXpert AI Centralized API Client
  * Decoupled client communicating with Flask REST API.
  */
 
