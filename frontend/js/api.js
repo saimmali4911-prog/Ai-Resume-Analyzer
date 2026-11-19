@@ -7,7 +7,7 @@ const API = (() => {
   const STORAGE_TOKEN_KEY = 'resume_token';
   const STORAGE_USER_KEY = 'resume_user';
 
-  const DEFAULT_BACKEND_URL = 'https://ai-resume-analyzer-api-o58y.onrender.com';
+  const DEFAULT_BACKEND_URL = 'https://ai-resume-analyzer-api-tp6l.onrender.com';
 
   const getBaseUrl = () => {
     if (window.API_BASE_URL) return window.API_BASE_URL.replace(/\/+$/, '');
