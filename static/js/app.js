@@ -204,24 +204,26 @@ window.App = {
     const engine = data.engine || result.engine || 'sklearn';
 
     let badgeHtml = '';
-    if (engine === 'gemini') {
+    if (engine === 'groq' || engine === 'gemini') {
+      const isGroq = engine === 'groq';
+      const label = data.engine_label || (isGroq ? 'Groq AI' : 'Google Gemini AI');
       badgeHtml = `
-        <div class="alert alert-success d-flex align-items-center justify-content-between py-2 px-3 mb-3 border-0 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #eef2ff, #f0fdf4); color: #3730a3;">
+        <div class="alert alert-success d-flex align-items-center justify-content-between py-2 px-3 mb-3 rounded-4 shadow-sm" style="background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.3) !important;">
           <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-primary rounded-pill px-2 py-1"><i class="bi bi-stars"></i> Gemini AI</span>
-            <span class="fw-semibold">Analyzed with Google Gemini AI</span>
+            <span class="badge bg-success rounded-pill px-2 py-1"><i class="bi bi-stars"></i> ${isGroq ? 'Groq AI' : 'Gemini AI'}</span>
+            <span class="fw-semibold" style="color:var(--text);">${label}</span>
           </div>
-          <small class="text-muted d-none d-sm-inline">Deep Neural Analysis Active</small>
+          <small class="d-none d-sm-inline" style="color:var(--muted-light);">${isGroq ? 'Ultra-Fast Neural Engine' : 'Deep Neural Analysis'}</small>
         </div>
       `;
     } else {
       badgeHtml = `
-        <div id="sklearn-notice" class="alert alert-warning d-flex align-items-center justify-content-between py-2 px-3 mb-3 border-0 rounded-4 shadow-sm" style="background: #fffbeb; color: #92400e; transition: opacity 0.8s ease, max-height 0.8s ease, margin 0.8s ease; overflow: hidden;">
+        <div id="sklearn-notice" class="alert alert-warning d-flex align-items-center justify-content-between py-2 px-3 mb-3 rounded-4 shadow-sm" style="background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3) !important; transition: opacity 0.8s ease, max-height 0.8s ease, margin 0.8s ease; overflow: hidden;">
           <div class="d-flex align-items-center gap-2">
             <span class="badge bg-warning text-dark rounded-pill px-2 py-1"><i class="bi bi-cpu"></i> scikit-learn</span>
             <span class="fw-semibold">Analyzed with scikit-learn (Offline Engine)</span>
           </div>
-          <small class="text-muted"><i class="bi bi-hourglass-split"></i> Temporary notification</small>
+          <small style="color:var(--muted-light);"><i class="bi bi-hourglass-split"></i> Temporary notification</small>
         </div>
       `;
     }
@@ -229,7 +231,7 @@ window.App = {
     container.innerHTML = badgeHtml + R[kind](result.data, result.score);
 
     // When scikit-learn is used, display the notification for a short while (6 seconds), then smoothly fade it out
-    if (engine !== 'gemini') {
+    if (engine !== 'gemini' && engine !== 'groq') {
       setTimeout(() => {
         const notice = $('#sklearn-notice');
         if (notice) {
@@ -294,7 +296,11 @@ window.App = {
         await API.auth.login({ username, password });
         window.location.href = 'dashboard.html';
       } catch (err) {
-        alertBox.innerHTML = `<div class="alert alert-danger">${esc(err.message)}</div>`;
+        let msg = err.message || 'Username or password is not correct.';
+        if (err.status === 401 || msg.toLowerCase().includes('invalid')) {
+          msg = 'Username or password is not correct.';
+        }
+        alertBox.innerHTML = `<div class="alert alert-danger d-flex align-items-center gap-2 mb-3"><i class="bi bi-exclamation-circle-fill"></i> <span>${esc(msg)}</span></div>`;
         btn.disabled = false;
         btn.textContent = 'Login';
       }

@@ -24,6 +24,64 @@ STOPWORDS = {'and','or','the','a','an','to','of','in','for','on','with','at','by
              'could','should','may','might','shall','i','we','you','they','he','she','it','this',
              'that','these','those','my','your','our','their','his','her','its'}
 
+def _get_groq_api_key():
+    """Retrieve Groq API key if GROQ_API_KEY is available."""
+    api_key = os.getenv('GROQ_API_KEY', '').strip()
+    if not api_key:
+        try:
+            from config import Config
+            api_key = getattr(Config, 'GROQ_API_KEY', '').strip()
+        except Exception:
+            api_key = ''
+    if not api_key or api_key in ('your-groq-api-key-here', 'your_groq_api_key_here'):
+        return None
+    return api_key
+
+def _call_groq(prompt):
+    """Call Groq with JSON output format using fast LLMs."""
+    api_key = _get_groq_api_key()
+    if not api_key:
+        return None, None
+
+    import urllib.request
+    import urllib.error
+    models = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant']
+    for m in models:
+        try:
+            req = urllib.request.Request(
+                'https://api.groq.com/openai/v1/chat/completions',
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'ResumeXpert-AI'
+                },
+                data=json.dumps({
+                    'model': m,
+                    'messages': [
+                        {
+                            'role': 'system',
+                            'content': 'You are an expert executive recruiter, resume analyst, and ATS specialist. Always respond strictly with a valid JSON object matching the requested schema, with no markdown fences, no preamble, and no extra commentary.'
+                        },
+                        {
+                            'role': 'user',
+                            'content': prompt
+                        }
+                    ],
+                    'response_format': {'type': 'json_object'},
+                    'temperature': 0.2
+                }).encode('utf-8')
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                raw_text = data['choices'][0]['message']['content']
+                parsed = _parse_json(raw_text)
+                if parsed:
+                    return parsed, f"Groq AI ({m})"
+        except Exception as err:
+            logger.warning(f"Groq call to {m} failed: {err}")
+            continue
+    return None, None
+
 def _get_gemini_client():
     """Retrieve Gemini client if GEMINI_API_KEY is available."""
     api_key = os.getenv('GEMINI_API_KEY', '').strip()
@@ -69,6 +127,20 @@ def _call_gemini(prompt):
             logger.warning(f"Gemini call to {m} failed: {err}")
             continue
     return None
+
+def _call_llm(prompt):
+    """Try Groq first (ultra-fast), fallback to Gemini, return (parsed_json, engine_id, engine_label)."""
+    # 1. Groq AI
+    groq_res, groq_label = _call_groq(prompt)
+    if groq_res:
+        return groq_res, 'groq', groq_label or 'Groq AI'
+
+    # 2. Gemini AI
+    gemini_res = _call_gemini(prompt)
+    if gemini_res:
+        return gemini_res, 'gemini', 'Google Gemini AI'
+
+    return None, None, None
 
 def _parse_json(text):
     if not text:
@@ -163,12 +235,12 @@ Return a valid JSON object strictly matching this schema:
   "feedback": "<concise 2-3 sentence executive summary of resume performance>"
 }}
 """
-    ai_result = _call_gemini(prompt)
+    ai_result, engine_id, engine_label = _call_llm(prompt)
     if ai_result and isinstance(ai_result, dict) and 'overall' in ai_result:
         try:
             return {
-                'engine': 'gemini',
-                'engine_label': 'Google Gemini AI',
+                'engine': engine_id,
+                'engine_label': engine_label,
                 'overall': max(0, min(100, int(ai_result.get('overall', 75)))),
                 'scores': {
                     'skills': max(0, min(100, int(ai_result.get('scores', {}).get('skills', 70)))),
@@ -281,12 +353,12 @@ Return a valid JSON object strictly matching this schema:
   "recommendations": [<list of 3-5 best practices for ATS readability>]
 }}
 """
-    ai_result = _call_gemini(prompt)
+    ai_result, engine_id, engine_label = _call_llm(prompt)
     if ai_result and isinstance(ai_result, dict) and 'score' in ai_result:
         try:
             return {
-                'engine': 'gemini',
-                'engine_label': 'Google Gemini AI',
+                'engine': engine_id,
+                'engine_label': engine_label,
                 'score': max(0, min(100, int(ai_result.get('score', 75)))),
                 'semantic_issues': ai_result.get('semantic_issues', []),
                 'keyword_suggestions': ai_result.get('keyword_suggestions', []),
@@ -343,12 +415,12 @@ Return a valid JSON object strictly matching this schema:
   "suggestions": [<list of 3-4 specific suggestions to increase match score for this role>]
 }}
 """
-    ai_result = _call_gemini(prompt)
+    ai_result, engine_id, engine_label = _call_llm(prompt)
     if ai_result and isinstance(ai_result, dict) and 'match_percent' in ai_result:
         try:
             return {
-                'engine': 'gemini',
-                'engine_label': 'Google Gemini AI',
+                'engine': engine_id,
+                'engine_label': engine_label,
                 'match_percent': max(0, min(100, int(ai_result.get('match_percent', 50)))),
                 'required_skills': ai_result.get('required_skills', []),
                 'matching_skills': ai_result.get('matching_skills', []),
@@ -416,18 +488,18 @@ Return a valid JSON object strictly matching this schema:
   "notes": "<advice on tailoring this section for higher impact>"
 }}
 """
-    ai_result = _call_gemini(prompt)
+    ai_result, engine_id, engine_label = _call_llm(prompt)
     if ai_result and isinstance(ai_result, dict) and 'improved' in ai_result:
         try:
             return {
-                'engine': 'gemini',
-                'engine_label': 'Google Gemini AI',
+                'engine': engine_id,
+                'engine_label': engine_label,
                 'original': original_text or f'[{section} section from your resume]',
                 'improved': ai_result.get('improved', ''),
                 'changes': ai_result.get('changes', []),
                 'action_verbs': ai_result.get('action_verbs', []),
                 'recommended_skills': ai_result.get('recommended_skills', []),
-                'notes': ai_result.get('notes', f'Gemini AI polished your {section} section.')
+                'notes': ai_result.get('notes', f'{engine_label} polished your {section} section.')
             }
         except Exception:
             pass
