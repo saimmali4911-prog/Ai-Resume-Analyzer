@@ -3,27 +3,63 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Analysis Tool · ResumeXpert AI</title>
+  <title>AI Analysis Tool &middot; ResumeXpert AI</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
+  <style>
+    /* Tool-specific pill nav */
+    .tool-nav { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .tool-nav a {
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.45rem 1rem; border-radius:999px; font-size:.85rem; font-weight:500;
+      border:1px solid var(--border); color:var(--muted); text-decoration:none;
+      transition:all .2s;
+    }
+    .tool-nav a:hover { border-color:var(--accent); color:var(--accent); background:rgba(99,102,241,.08); }
+    .tool-nav a.active { background:var(--grad); border-color:transparent; color:#fff; }
+
+    /* Result area */
+    #result h4, #result h5 { color:var(--fg); font-weight:700; }
+    #result p  { color:var(--muted-light); line-height:1.7; }
+    #result ul { color:var(--muted-light); padding-left:1.25rem; }
+    #result li { margin-bottom:.35rem; }
+    #result .section-block {
+      background:var(--surface-2);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:1.25rem;
+      margin-bottom:1rem;
+    }
+  </style>
 </head>
 <body>
-  <!-- Mobile drawer button -->
-  <button class="btn btn-grad d-lg-none position-fixed m-2" style="z-index:30" id="menu">
+  <!-- Mobile menu button -->
+  <button class="d-lg-none position-fixed m-2" style="z-index:40;top:0;left:0;background:var(--grad);border:none;color:#fff;width:40px;height:40px;border-radius:10px;font-size:1.2rem;display:flex;align-items:center;justify-content:center;" id="menu">
     <i class="bi bi-list"></i>
   </button>
 
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="overlay"></div>
+
   <!-- Sidebar -->
-  <aside class="side">
+  <aside class="side" id="sidebar">
     <div class="brand"><i class="bi bi-stars"></i> ResumeXpert AI</div>
+
+    <div class="side-section-label">Main</div>
     <a href="dashboard.html"><i class="bi bi-grid-1x2"></i> Dashboard</a>
     <a href="upload.html"><i class="bi bi-cloud-arrow-up"></i> Upload Resume</a>
-    <a href="tool.html?kind=analysis"><i class="bi bi-graph-up"></i> Resume Analysis</a>
-    <a href="tool.html?kind=ats"><i class="bi bi-shield-check"></i> ATS Checker</a>
-    <a href="tool.html?kind=match"><i class="bi bi-bullseye"></i> Job Matching</a>
-    <a href="tool.html?kind=improve"><i class="bi bi-magic"></i> AI Improvements</a>
+
+    <div class="side-divider"></div>
+    <div class="side-section-label">AI Tools</div>
+    <a href="tool.html?kind=analysis" id="nav-analysis"><i class="bi bi-graph-up"></i> Resume Analysis</a>
+    <a href="tool.html?kind=ats"      id="nav-ats"><i class="bi bi-shield-check"></i> ATS Checker</a>
+    <a href="tool.html?kind=match"    id="nav-match"><i class="bi bi-bullseye"></i> Job Matching</a>
+    <a href="tool.html?kind=improve"  id="nav-improve"><i class="bi bi-magic"></i> AI Improvements</a>
+
+    <div class="side-divider"></div>
+    <div class="side-section-label">Account</div>
     <a href="history.html"><i class="bi bi-clock-history"></i> Analysis History</a>
     <a href="profile.html"><i class="bi bi-person-circle"></i> My Profile</a>
     <button id="logout-btn"><i class="bi bi-box-arrow-right"></i> Logout</button>
@@ -31,57 +67,138 @@
 
   <!-- Main Content -->
   <main class="main">
-    <h3 class="fw-bold" id="tool-title">Analysis Tool</h3>
-    <p class="text-muted" id="tool-desc">AI-powered resume evaluation.</p>
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <div class="d-flex align-items-center gap-3 mb-1">
+          <div class="feature-icon" style="width:48px;height:48px;font-size:1.3rem;" id="tool-icon">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div>
+            <h2 class="fw-bold mb-0" style="font-size:1.6rem;" id="tool-title">Analysis Tool</h2>
+            <p class="text-muted mb-0" style="font-size:.9rem;" id="tool-desc">AI-powered resume evaluation.</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- Alert if no resumes uploaded -->
-    <div class="alert alert-info d-none" id="no-resumes-alert">
-      You haven't uploaded any resumes yet. <a href="upload.html" class="fw-semibold">Upload your resume now</a>
+    <!-- Tool Pill Nav -->
+    <nav class="tool-nav">
+      <a href="tool.html?kind=analysis" id="pill-analysis"><i class="bi bi-graph-up"></i> Resume Analysis</a>
+      <a href="tool.html?kind=ats"      id="pill-ats"><i class="bi bi-shield-check"></i> ATS Checker</a>
+      <a href="tool.html?kind=match"    id="pill-match"><i class="bi bi-bullseye"></i> Job Matching</a>
+      <a href="tool.html?kind=improve"  id="pill-improve"><i class="bi bi-magic"></i> AI Improvements</a>
+    </nav>
+
+    <!-- Alert: no resumes -->
+    <div class="alert alert-info d-none mb-3" id="no-resumes-alert">
+      <i class="bi bi-info-circle me-2"></i>
+      You haven't uploaded any resumes yet. <a href="upload.html" class="fw-semibold alert-link">Upload your resume now</a>
     </div>
 
     <!-- Tool Form -->
-    <form id="toolform" class="cardx mb-4" style="height:auto">
-      <label class="form-label fw-semibold" for="resume-select">Select Resume</label>
-      <select id="resume-select" class="form-select mb-3">
-        <option value="">Loading resumes...</option>
-      </select>
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <form id="toolform" class="cardx" style="height:auto;">
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="resume-select" style="font-size:.85rem;color:var(--muted);">
+              <i class="bi bi-file-earmark-person me-1"></i> Select Resume
+            </label>
+            <select id="resume-select" class="form-select">
+              <option value="">Loading resumes...</option>
+            </select>
+          </div>
 
-      <!-- Match specific fields -->
-      <div id="match-fields" class="d-none">
-        <label class="form-label fw-semibold" for="job_title">Job Title (optional)</label>
-        <input id="job_title" class="form-control mb-3" placeholder="e.g. Senior Backend Engineer" maxlength="150">
-        <label class="form-label fw-semibold" for="job_description">Job Description</label>
-        <textarea id="job_description" class="form-control mb-3" rows="8" placeholder="Paste the full job description here..."></textarea>
+          <!-- Match-specific fields -->
+          <div id="match-fields" class="d-none">
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="job_title" style="font-size:.85rem;color:var(--muted);">
+                <i class="bi bi-briefcase me-1"></i> Job Title <span class="text-muted fw-normal">(optional)</span>
+              </label>
+              <input id="job_title" class="form-control" placeholder="e.g. Senior Backend Engineer" maxlength="150">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="job_description" style="font-size:.85rem;color:var(--muted);">
+                <i class="bi bi-file-text me-1"></i> Job Description
+              </label>
+              <textarea id="job_description" class="form-control" rows="8" placeholder="Paste the full job description here..."></textarea>
+            </div>
+          </div>
+
+          <!-- Improve-specific fields -->
+          <div id="improve-fields" class="d-none">
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="section-select" style="font-size:.85rem;color:var(--muted);">
+                <i class="bi bi-layout-text-sidebar me-1"></i> Section to Improve
+              </label>
+              <select id="section-select" class="form-select">
+                <option>Professional Summary</option>
+                <option>Work Experience</option>
+                <option>Technical Skills</option>
+                <option>Projects</option>
+                <option>Career Objective</option>
+                <option>Education Description</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="original-text" style="font-size:.85rem;color:var(--muted);">
+                <i class="bi bi-pencil me-1"></i> Original Section Text <span class="text-muted fw-normal">(optional)</span>
+              </label>
+              <textarea id="original-text" class="form-control" rows="5" placeholder="Paste the text to improve (leave empty to auto-analyze from your resume)"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold" for="facts-text" style="font-size:.85rem;color:var(--muted);">
+                <i class="bi bi-trophy me-1"></i> Key Achievements / Metrics <span class="text-muted fw-normal">(optional)</span>
+              </label>
+              <textarea id="facts-text" class="form-control" rows="3" placeholder="Optional: real achievements, numbers or metrics you want emphasized"></textarea>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-3 mt-2">
+            <button type="submit" class="btn btn-grad">
+              <i class="bi bi-play-fill me-1"></i> Run Analysis
+            </button>
+            <span class="spin d-none d-flex align-items-center gap-2" style="color:var(--muted);">
+              <div class="spinner-wave" style="transform:scale(.7);transform-origin:left center;">
+                <span></span><span></span><span></span><span></span>
+              </div>
+              Analyzing, please wait&hellip;
+            </span>
+          </div>
+        </form>
       </div>
 
-      <!-- Improve specific fields -->
-      <div id="improve-fields" class="d-none">
-        <label class="form-label fw-semibold" for="section-select">Section to Improve</label>
-        <select id="section-select" class="form-select mb-3">
-          <option>Professional Summary</option>
-          <option>Work Experience</option>
-          <option>Technical Skills</option>
-          <option>Projects</option>
-          <option>Career Objective</option>
-          <option>Education Description</option>
-        </select>
-        <label class="form-label fw-semibold" for="original-text">Original Section Text (optional)</label>
-        <textarea id="original-text" class="form-control mb-3" rows="5" placeholder="Paste the text to improve (leave empty to auto-analyze from your resume)"></textarea>
-        <label class="form-label fw-semibold" for="facts-text">Key Achievements / Metrics (optional)</label>
-        <textarea id="facts-text" class="form-control mb-3" rows="3" placeholder="Optional: real achievements, numbers or metrics you want emphasized"></textarea>
+      <!-- Tips Panel -->
+      <div class="col-lg-4">
+        <div class="cardx" style="height:auto;" id="tips-panel">
+          <h6 class="fw-bold mb-3" style="font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);">
+            <i class="bi bi-lightbulb me-1" style="color:var(--warning);"></i> Tips
+          </h6>
+          <ul class="list-unstyled mb-0 d-flex flex-column gap-3" id="tips-list">
+            <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+              <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+              Use a clean, well-structured resume for the best analysis results.
+            </li>
+            <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+              <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+              For ATS Checker, include keywords from the target job posting.
+            </li>
+            <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+              <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+              Job Matching works best with a full job description pasted in.
+            </li>
+            <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+              <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+              AI Improvements generate ready-to-paste section rewrites.
+            </li>
+          </ul>
+        </div>
       </div>
+    </div>
 
-      <div class="d-flex align-items-center">
-        <button type="submit" class="btn btn-grad">Run Analysis</button>
-        <span class="spin d-none ms-3">
-          <span class="spinner-border spinner-border-sm text-primary"></span>
-          Analyzing, please wait…
-        </span>
-      </div>
-    </form>
-
-    <div id="alert"></div>
-    <div id="result"></div>
+    <!-- Alert & Result area -->
+    <div id="alert" class="mt-3"></div>
+    <div id="result" class="mt-3"></div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -89,7 +206,30 @@
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => App.initTool());
+    document.addEventListener('DOMContentLoaded', () => {
+      App.initTool();
+
+      // Highlight active sidebar + pill nav based on ?kind= param
+      const kind = new URLSearchParams(window.location.search).get('kind') || 'analysis';
+      const navEl  = document.getElementById('nav-' + kind);
+      const pillEl = document.getElementById('pill-' + kind);
+      if (navEl)  navEl.classList.add('active');
+      if (pillEl) pillEl.classList.add('active');
+
+      // Update icon per tool kind
+      const icons = { analysis:'graph-up', ats:'shield-check', match:'bullseye', improve:'magic' };
+      const iconEl = document.getElementById('tool-icon');
+      if (iconEl && icons[kind]) iconEl.innerHTML = `<i class="bi bi-${icons[kind]}"></i>`;
+    });
+
+    // Mobile sidebar toggle
+    const menu = document.getElementById('menu');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('show'); }
+    function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('show'); }
+    menu.addEventListener('click', openSidebar);
+    overlay.addEventListener('click', closeSidebar);
   </script>
 </body>
 </html>

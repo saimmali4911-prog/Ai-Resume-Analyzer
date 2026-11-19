@@ -3,52 +3,102 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Analysis History · ResumeXpert AI</title>
+  <title>Analysis History &middot; ResumeXpert AI</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
-  <!-- Mobile drawer button -->
-  <button class="btn btn-grad d-lg-none position-fixed m-2" style="z-index:30" id="menu">
+  <!-- Mobile menu button -->
+  <button class="d-lg-none position-fixed m-2 btn-menu-toggle" style="z-index:40;top:0;left:0;background:var(--grad);border:none;color:#fff;width:40px;height:40px;border-radius:10px;font-size:1.2rem;display:flex;align-items:center;justify-content:center;" id="menu">
     <i class="bi bi-list"></i>
   </button>
 
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="overlay"></div>
+
   <!-- Sidebar -->
-  <aside class="side">
+  <aside class="side" id="sidebar">
     <div class="brand"><i class="bi bi-stars"></i> ResumeXpert AI</div>
+
+    <div class="side-section-label">Main</div>
     <a href="dashboard.html"><i class="bi bi-grid-1x2"></i> Dashboard</a>
     <a href="upload.html"><i class="bi bi-cloud-arrow-up"></i> Upload Resume</a>
+
+    <div class="side-divider"></div>
+    <div class="side-section-label">AI Tools</div>
     <a href="tool.html?kind=analysis"><i class="bi bi-graph-up"></i> Resume Analysis</a>
     <a href="tool.html?kind=ats"><i class="bi bi-shield-check"></i> ATS Checker</a>
     <a href="tool.html?kind=match"><i class="bi bi-bullseye"></i> Job Matching</a>
     <a href="tool.html?kind=improve"><i class="bi bi-magic"></i> AI Improvements</a>
-    <a href="history.html"><i class="bi bi-clock-history"></i> Analysis History</a>
+
+    <div class="side-divider"></div>
+    <div class="side-section-label">Account</div>
+    <a href="history.html" class="active"><i class="bi bi-clock-history"></i> Analysis History</a>
     <a href="profile.html"><i class="bi bi-person-circle"></i> My Profile</a>
     <button id="logout-btn"><i class="bi bi-box-arrow-right"></i> Logout</button>
   </aside>
 
   <!-- Main Content -->
   <main class="main">
-    <h3 class="fw-bold mb-3">Analysis History</h3>
-    <div class="cardx table-responsive" style="height:auto">
-      <table class="table align-middle mb-0">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Resume</th>
-            <th>Score</th>
-            <th>Date</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="history-tbody">
-          <tr>
-            <td colspan="5" class="text-muted text-center py-4">Loading history...</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <div class="d-flex align-items-center gap-3 mb-1">
+          <div class="feature-icon" style="width:48px;height:48px;font-size:1.3rem;">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <div>
+            <h2 class="fw-bold mb-0" style="font-size:1.6rem;">Analysis History</h2>
+            <p class="text-muted mb-0" style="font-size:.9rem;">Track all your past AI-powered resume evaluations</p>
+          </div>
+        </div>
+      </div>
+      <a href="tool.html?kind=analysis" class="btn btn-grad" style="white-space:nowrap;">
+        <i class="bi bi-plus-lg me-1"></i> New Analysis
+      </a>
+    </div>
+
+    <!-- Empty state (hidden by default, shown via JS if no history) -->
+    <div id="empty-state" class="d-none text-center py-5">
+      <div class="feature-icon mx-auto mb-4" style="width:72px;height:72px;font-size:2rem;">
+        <i class="bi bi-clock-history"></i>
+      </div>
+      <h4 class="fw-bold mb-2">No analyses yet</h4>
+      <p class="text-muted mb-4">Run your first AI analysis to see results here.</p>
+      <a href="tool.html?kind=analysis" class="btn btn-grad">
+        <i class="bi bi-graph-up me-2"></i>Start Analysis
+      </a>
+    </div>
+
+    <!-- History Table -->
+    <div class="cardx" style="height:auto;padding:0;overflow:hidden;">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0" id="history-table">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="padding:1rem 1.25rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:transparent;">Type</th>
+              <th style="padding:1rem 1.25rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:transparent;">Resume</th>
+              <th style="padding:1rem 1.25rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:transparent;">Score</th>
+              <th style="padding:1rem 1.25rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:transparent;">Date</th>
+              <th style="padding:1rem 1.25rem;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:transparent;"></th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody">
+            <tr>
+              <td colspan="5" class="text-center py-5" style="color:var(--muted);">
+                <div class="d-flex flex-column align-items-center gap-2">
+                  <div class="spinner-wave">
+                    <span></span><span></span><span></span><span></span>
+                  </div>
+                  <span>Loading history...</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 
@@ -57,6 +107,15 @@
   <script src="js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => App.initHistory());
+
+    // Mobile sidebar toggle
+    const menu = document.getElementById('menu');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('show'); }
+    function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('show'); }
+    menu.addEventListener('click', openSidebar);
+    overlay.addEventListener('click', closeSidebar);
   </script>
 </body>
 </html>

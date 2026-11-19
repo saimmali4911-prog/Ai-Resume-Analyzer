@@ -10,84 +10,141 @@
   <link href="css/style.css" rel="stylesheet">
 </head>
 <body>
-  <!-- Mobile drawer button -->
-  <button class="btn btn-grad d-lg-none position-fixed m-2" style="z-index:30" id="menu">
-    <i class="bi bi-list"></i>
-  </button>
+
+  <!-- Mobile menu button -->
+  <button class="d-lg-none" id="menu"><i class="bi bi-list"></i></button>
+  <div class="sidebar-overlay" id="overlay"></div>
 
   <!-- Sidebar -->
-  <aside class="side">
+  <aside class="side" id="sidebar">
     <div class="brand"><i class="bi bi-stars"></i> ResumeXpert AI</div>
-    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i> Dashboard</a>
-    <a href="upload.html"><i class="bi bi-cloud-arrow-up"></i> Upload Resume</a>
-    <a href="tool.html?kind=analysis"><i class="bi bi-graph-up"></i> Resume Analysis</a>
+
+    <div class="side-section-label">Main</div>
+    <a href="dashboard.html" class="active"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+    <a href="upload.html"><i class="bi bi-cloud-arrow-up-fill"></i> Upload Resume</a>
+
+    <div class="side-divider"></div>
+    <div class="side-section-label">AI Tools</div>
+    <a href="tool.html?kind=analysis"><i class="bi bi-graph-up-arrow"></i> Resume Analysis</a>
     <a href="tool.html?kind=ats"><i class="bi bi-shield-check"></i> ATS Checker</a>
     <a href="tool.html?kind=match"><i class="bi bi-bullseye"></i> Job Matching</a>
     <a href="tool.html?kind=improve"><i class="bi bi-magic"></i> AI Improvements</a>
+
+    <div class="side-divider"></div>
+    <div class="side-section-label">Account</div>
     <a href="history.html"><i class="bi bi-clock-history"></i> Analysis History</a>
     <a href="profile.html"><i class="bi bi-person-circle"></i> My Profile</a>
-    <button id="logout-btn"><i class="bi bi-box-arrow-right"></i> Logout</button>
+
+    <div class="mt-auto pt-3 side-divider"></div>
+    <button id="logout-btn"><i class="bi bi-box-arrow-right"></i> Sign Out</button>
   </aside>
 
   <!-- Main Content -->
   <main class="main">
-    <div class="hero-sm mb-4">
-      <h3 class="fw-bold mb-1">Welcome back, <span id="welcome-name">...</span> 👋</h3>
-      <p class="mb-3 opacity-75">Here is your resume progress at a glance.</p>
-      <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-light btn-sm rounded-pill" href="upload.html">Upload</a>
-        <a class="btn btn-light btn-sm rounded-pill" href="tool.html?kind=analysis">Analyze</a>
-        <a class="btn btn-light btn-sm rounded-pill" href="tool.html?kind=ats">ATS check</a>
-        <a class="btn btn-light btn-sm rounded-pill" href="tool.html?kind=match">Match job</a>
+
+    <!-- Welcome Header -->
+    <div class="hero-sm mb-4" style="position:relative;overflow:hidden;">
+      <div style="position:relative;z-index:2">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="hero-badge" style="font-size:.78rem;">
+            <i class="bi bi-stars"></i> ResumeXpert AI Dashboard
+          </span>
+        </div>
+        <h3 class="fw-bold text-white mb-1">
+          Welcome back, <span id="welcome-name" class="text-grad">...</span> 👋
+        </h3>
+        <p class="mb-3" style="color:rgba(255,255,255,.65)">Here is your resume progress at a glance.</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-grad btn-sm px-3" href="upload.html">
+            <i class="bi bi-cloud-arrow-up me-1"></i>Upload
+          </a>
+          <a class="btn btn-grad-outline btn-sm px-3" href="tool.html?kind=analysis">
+            <i class="bi bi-graph-up me-1"></i>Analyze
+          </a>
+          <a class="btn btn-grad-outline btn-sm px-3" href="tool.html?kind=ats">
+            <i class="bi bi-shield-check me-1"></i>ATS Check
+          </a>
+          <a class="btn btn-grad-outline btn-sm px-3" href="tool.html?kind=match">
+            <i class="bi bi-bullseye me-1"></i>Match Job
+          </a>
+        </div>
       </div>
     </div>
 
     <!-- Stats Row -->
     <div class="row g-3 mb-4">
       <div class="col-6 col-xl-3">
-        <div class="cardx">
-          <small class="text-muted">Resumes uploaded</small>
-          <h2 class="fw-bold" id="stat-resumes">—</h2>
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="bi bi-file-earmark-text"></i></div>
+          <div>
+            <div class="stat-label">Resumes Uploaded</div>
+            <div class="stat-value" id="stat-resumes">—</div>
+          </div>
         </div>
       </div>
       <div class="col-6 col-xl-3">
-        <div class="cardx">
-          <small class="text-muted">Analyses completed</small>
-          <h2 class="fw-bold" id="stat-analyses">—</h2>
+        <div class="stat-card">
+          <div class="stat-icon violet"><i class="bi bi-graph-up-arrow"></i></div>
+          <div>
+            <div class="stat-label">Analyses Done</div>
+            <div class="stat-value" id="stat-analyses">—</div>
+          </div>
         </div>
       </div>
       <div class="col-6 col-xl-3">
-        <div class="cardx">
-          <small class="text-muted">Latest resume score</small>
-          <h2 class="fw-bold" id="stat-last-an">—</h2>
+        <div class="stat-card">
+          <div class="stat-icon cyan"><i class="bi bi-trophy"></i></div>
+          <div>
+            <div class="stat-label">Latest Score</div>
+            <div class="stat-value" id="stat-last-an">—</div>
+          </div>
         </div>
       </div>
       <div class="col-6 col-xl-3">
-        <div class="cardx">
-          <small class="text-muted">Latest ATS score</small>
-          <h2 class="fw-bold" id="stat-last-ats">—</h2>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="bi bi-shield-check"></i></div>
+          <div>
+            <div class="stat-label">ATS Score</div>
+            <div class="stat-value" id="stat-last-ats">—</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Charts and Recent Activity -->
+    <!-- Charts -->
     <div class="row g-3">
       <div class="col-lg-7">
-        <div class="cardx">
-          <h6>Resume improvement progress</h6>
+        <div class="cardx h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-white mb-0">
+              <i class="bi bi-graph-up text-grad me-2"></i>Resume Improvement Progress
+            </h6>
+            <span class="chip" style="font-size:.75rem;">Last 10</span>
+          </div>
           <canvas id="prog" height="130"></canvas>
         </div>
       </div>
       <div class="col-lg-5">
-        <div class="cardx">
-          <h6>Recent job matches</h6>
-          <div id="recent-matches" class="mb-4">
-            <p class="text-muted">Loading matches...</p>
+        <div class="cardx h-100">
+          <h6 class="fw-bold text-white mb-3">
+            <i class="bi bi-clock-history text-grad me-2"></i>Recent Activity
+          </h6>
+          <div class="mb-4">
+            <div class="text-muted" style="font-size:.8rem;text-transform:uppercase;letter-spacing:.8px;margin-bottom:.6rem;font-weight:700;">
+              Job Matches
+            </div>
+            <div id="recent-matches">
+              <p class="text-muted" style="font-size:.88rem">No matches yet.</p>
+            </div>
           </div>
-
-          <h6>Recent resumes</h6>
-          <div id="recent-resumes">
-            <p class="text-muted">Loading resumes...</p>
+          <div class="side-divider"></div>
+          <div class="mt-3">
+            <div class="text-muted" style="font-size:.8rem;text-transform:uppercase;letter-spacing:.8px;margin-bottom:.6rem;font-weight:700;">
+              Recent Resumes
+            </div>
+            <div id="recent-resumes">
+              <p class="text-muted" style="font-size:.88rem">No resumes yet. <a href="upload.html" style="color:var(--p3)">Upload one!</a></p>
+            </div>
           </div>
         </div>
       </div>
@@ -99,7 +156,19 @@
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => App.initDashboard());
+    document.addEventListener('DOMContentLoaded', () => {
+      App.initDashboard();
+      // Mobile sidebar
+      const menu = document.getElementById('menu');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      function toggleSidebar() {
+        sidebar.classList.toggle('open');
+        overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+      }
+      menu?.addEventListener('click', toggleSidebar);
+      overlay?.addEventListener('click', toggleSidebar);
+    });
   </script>
 </body>
 </html>
