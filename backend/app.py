@@ -174,7 +174,7 @@ def login():
     ).first()
 
     if not user or not user.check_password(password):
-        return jsonify({'error': 'Invalid username or password.'}), 401
+        return jsonify({'error': 'Username or password is not correct.'}), 401
 
     login_user(user)
     token = generate_token(user.id)

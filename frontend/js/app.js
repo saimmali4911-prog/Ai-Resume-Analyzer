@@ -294,7 +294,11 @@ window.App = {
         await API.auth.login({ username, password });
         window.location.href = 'dashboard.html';
       } catch (err) {
-        alertBox.innerHTML = `<div class="alert alert-danger">${esc(err.message)}</div>`;
+        let msg = err.message || 'Username or password is not correct.';
+        if (err.status === 401 || msg.toLowerCase().includes('invalid')) {
+          msg = 'Username or password is not correct.';
+        }
+        alertBox.innerHTML = `<div class="alert alert-danger d-flex align-items-center gap-2 mb-3"><i class="bi bi-exclamation-circle-fill"></i> <span>${esc(msg)}</span></div>`;
         btn.disabled = false;
         btn.textContent = 'Login';
       }
