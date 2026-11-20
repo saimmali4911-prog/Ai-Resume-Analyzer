@@ -43,18 +43,20 @@
   <main class="main">
 
     <!-- Welcome Header -->
-    <div class="hero-sm mb-4" style="position:relative;overflow:hidden;">
-      <div style="position:relative;z-index:2">
-        <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="hero-badge" style="font-size:.78rem;">
+    <div class="hero-sm mb-4 text-center">
+      <div class="d-flex flex-column align-items-center justify-content-center text-center" style="position:relative;z-index:2">
+        <div class="mb-2">
+          <span class="hero-badge mb-0" style="font-size:.78rem;padding:.35rem 1rem;">
             <i class="bi bi-stars"></i> ResumeXpert AI Dashboard
           </span>
         </div>
-        <h3 class="fw-bold text-white mb-1">
+        <h3 class="fw-bold text-white mb-2" style="font-size:1.85rem;">
           Welcome back, <span id="welcome-name" class="text-grad">...</span> 👋
         </h3>
-        <p class="mb-3" style="color:rgba(255,255,255,.65)">Here is your resume progress at a glance.</p>
-        <div class="d-flex flex-wrap gap-2">
+        <p class="mb-3" style="color:rgba(255,255,255,.7);font-size:.95rem;max-width:550px;">
+          Here is your resume progress at a glance.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-2">
           <a class="btn btn-grad btn-sm px-3" href="upload.html">
             <i class="bi bi-cloud-arrow-up me-1"></i>Upload
           </a>

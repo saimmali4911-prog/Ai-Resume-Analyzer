@@ -10,7 +10,7 @@
   <link href="css/style.css" rel="stylesheet">
   <style>
     /* Tool-specific pill nav */
-    .tool-nav { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .tool-nav { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.5rem; justify-content:center; }
     .tool-nav a {
       display:inline-flex; align-items:center; gap:.45rem;
       padding:.45rem 1rem; border-radius:999px; font-size:.85rem; font-weight:500;
@@ -68,17 +68,13 @@
   <!-- Main Content -->
   <main class="main">
     <!-- Page Header -->
-    <div class="page-header">
-      <div>
-        <div class="d-flex align-items-center gap-3 mb-1">
-          <div class="feature-icon" style="width:48px;height:48px;font-size:1.3rem;" id="tool-icon">
-            <i class="bi bi-graph-up"></i>
-          </div>
-          <div>
-            <h2 class="fw-bold mb-0" style="font-size:1.6rem;" id="tool-title">Analysis Tool</h2>
-            <p class="text-muted mb-0" style="font-size:.9rem;" id="tool-desc">AI-powered resume evaluation.</p>
-          </div>
+    <div class="page-header text-center">
+      <div class="d-flex flex-column align-items-center justify-content-center text-center">
+        <div class="feature-icon mb-3" style="width:56px;height:56px;font-size:1.4rem;" id="tool-icon">
+          <i class="bi bi-graph-up"></i>
         </div>
+        <h2 class="fw-bold text-white mb-2" style="font-size:1.75rem;" id="tool-title">Resume Analysis</h2>
+        <p class="text-muted mb-0" style="font-size:.95rem;max-width:620px;" id="tool-desc">Get a score with strengths, weaknesses and detailed feedback.</p>
       </div>
     </div>
 
