@@ -66,10 +66,127 @@ const R = {
 <div class="col-md-6"><div class="cardx"><h6>Education comparison</h6><p class="mb-0">${esc(d.education_comparison)}</p></div></div></div>
 <div class="row g-3">${list('Relevant Experience', d.relevant_experience, 'ok')}${list('Missing Qualifications', d.missing_qualifications, 'bad')}${list('Improvement Suggestions', d.suggestions)}</div>`,
 
-  improve: (d) => `<div class="row g-3 mb-3"><div class="col-md-6"><div class="cardx"><h6>Original</h6><div class="cmp" id="orig">${esc(d.original) || '<span class="text-muted">—</span>'}</div></div>
-<div class="col-md-6"><div class="cardx" style="border:2px solid #a5b4fc"><div class="d-flex justify-content-between"><h6>Improved</h6><button class="btn btn-sm btn-grad" data-copy="#impr"><i class="bi bi-clipboard"></i> Copy</button></div><div class="cmp" id="impr">${esc(d.improved)}</div></div></div></div>
-<div class="row g-3"><div class="col-md-6"><div class="cardx"><h6>Strong action verbs</h6>${chips(d.action_verbs) || '—'}</div></div><div class="col-md-6"><div class="cardx"><h6>Recommended skills</h6>${chips(d.recommended_skills) || '—'}</div></div>
-${list('What changed', d.changes)}${d.notes ? `<div class="col-md-6"><div class="cardx"><h6>Notes</h6><p class="mb-0">${esc(d.notes)}</p></div></div>` : ''}</div>`
+  improve: (d) => {
+    const originalText = d.original || 'No original section text provided (analyzed from uploaded resume).';
+    const improvedText = d.improved || 'Improvement could not be generated. Please try again.';
+    const sectionName = d.section || 'Resume Section';
+
+    const changesList = Array.isArray(d.changes) && d.changes.length
+      ? d.changes.map(c => `
+          <li class="d-flex align-items-start gap-2 mb-2">
+            <i class="bi bi-check2-circle text-success flex-shrink-0 mt-1" style="font-size:1.05rem;"></i>
+            <span style="color:var(--text); line-height:1.6;">${esc(c)}</span>
+          </li>
+        `).join('')
+      : '<li class="text-muted">No specific changes recorded.</li>';
+
+    const actionVerbsList = (d.action_verbs && d.action_verbs.length)
+      ? d.action_verbs.map(v => `<span class="chip good"><i class="bi bi-lightning-charge-fill me-1" style="font-size:.75rem;"></i>${esc(v)}</span>`).join('')
+      : '<span class="text-muted small">None detected</span>';
+
+    const recommendedSkillsList = (d.recommended_skills && d.recommended_skills.length)
+      ? d.recommended_skills.map(s => `<span class="chip"><i class="bi bi-stars me-1" style="font-size:.75rem;"></i>${esc(s)}</span>`).join('')
+      : '<span class="text-muted small">None detected</span>';
+
+    return `
+      <!-- Before & After Comparison -->
+      <div class="row g-4 mb-4">
+        <!-- Original Column -->
+        <div class="col-lg-6">
+          <div class="improve-card original h-100 d-flex flex-column">
+            <div class="improve-header">
+              <span class="improve-badge original">
+                <i class="bi bi-file-earmark-text"></i> Original ${esc(sectionName)}
+              </span>
+              <span class="badge bg-secondary-subtle text-secondary small px-2 py-1 rounded">Before</span>
+            </div>
+            <div class="cmp-content flex-grow-1" id="orig">
+${esc(originalText)}
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Improved Column -->
+        <div class="col-lg-6">
+          <div class="improve-card enhanced h-100 d-flex flex-column">
+            <div class="improve-header">
+              <span class="improve-badge enhanced">
+                <i class="bi bi-magic"></i> AI Enhanced Rewrite
+              </span>
+              <button class="copy-btn" data-copy="#impr" title="Copy to clipboard">
+                <i class="bi bi-clipboard"></i> Copy Text
+              </button>
+            </div>
+            <div class="cmp-content enhanced flex-grow-1" id="impr">
+${esc(improvedText)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Verbs & Recommended Skills -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-6">
+          <div class="cardx h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <div class="feature-icon mb-0" style="width:36px;height:36px;font-size:1rem;border-radius:10px;">
+                <i class="bi bi-lightning-charge-fill" style="color:#fbbf24;"></i>
+              </div>
+              <h6 class="fw-bold mb-0 text-white" style="font-size:.95rem;">Strong Action Verbs</h6>
+            </div>
+            <div class="d-flex flex-wrap gap-1">
+              ${actionVerbsList}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="cardx h-100">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <div class="feature-icon mb-0" style="width:36px;height:36px;font-size:1rem;border-radius:10px;">
+                <i class="bi bi-stars" style="color:var(--accent);"></i>
+              </div>
+              <h6 class="fw-bold mb-0 text-white" style="font-size:.95rem;">Recommended Skills &amp; Keywords</h6>
+            </div>
+            <div class="d-flex flex-wrap gap-1">
+              ${recommendedSkillsList}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Improvements & Writing Notes -->
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="cardx h-100 ok">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <div class="feature-icon mb-0" style="width:36px;height:36px;font-size:1rem;border-radius:10px;background:rgba(16,185,129,0.15);color:var(--success);">
+                <i class="bi bi-check2-circle"></i>
+              </div>
+              <h6 class="fw-bold mb-0 text-white" style="font-size:.95rem;">What Was Improved</h6>
+            </div>
+            <ul class="list-unstyled mb-0">
+              ${changesList}
+            </ul>
+          </div>
+        </div>
+
+        ${d.notes ? `
+          <div class="col-md-6">
+            <div class="cardx h-100">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <div class="feature-icon mb-0" style="width:36px;height:36px;font-size:1rem;border-radius:10px;background:rgba(245,158,11,0.15);color:var(--warning);">
+                  <i class="bi bi-lightbulb-fill"></i>
+                </div>
+                <h6 class="fw-bold mb-0 text-white" style="font-size:.95rem;">Executive Writing Advice</h6>
+              </div>
+              <p class="mb-0" style="color:var(--text); line-height:1.7; font-size:.92rem;">${esc(d.notes)}</p>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
 };
 
 // Chart Generators
@@ -580,11 +697,56 @@ window.App = {
     $('#tool-title').textContent = meta.title;
     $('#tool-desc').textContent = meta.desc;
 
-    // Show kind-specific input sections
+    // Show kind-specific input sections & update button/tips
+    const submitBtn = $('button[type=submit]', $('#toolform'));
+    const tipsList = $('#tips-list');
+
     if (kind === 'match') {
       $('#match-fields')?.classList.remove('d-none');
+      if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-bullseye me-1"></i> Match Job Description';
+      if (tipsList) {
+        tipsList.innerHTML = `
+          <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+            <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+            Paste the complete job description including requirements and responsibilities.
+          </li>
+          <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+            <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+            Our AI identifies exact matching skills and critical missing qualifications.
+          </li>
+          <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+            <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+            Incorporate recommended job keywords to maximize interview callback rates.
+          </li>
+        `;
+      }
     } else if (kind === 'improve') {
       $('#improve-fields')?.classList.remove('d-none');
+      if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-magic me-1"></i> Generate AI Improvement';
+      if (tipsList) {
+        tipsList.innerHTML = `
+          <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+            <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+            Select the section to elevate (e.g. Work Experience or Summary).
+          </li>
+          <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+            <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+            Leave original text blank to automatically extract and rewrite it from your resume.
+          </li>
+          <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+            <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+            Add metrics and key achievements in the notes box for quantitative bullets.
+          </li>
+          <li class="d-flex gap-2" style="font-size:.85rem;color:var(--muted-light);">
+            <i class="bi bi-check-circle-fill flex-shrink-0 mt-1" style="color:var(--success);"></i>
+            Use the "Copy Text" button to paste the AI rewrite directly into your resume document.
+          </li>
+        `;
+      }
+    } else if (kind === 'ats') {
+      if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-shield-check me-1"></i> Run ATS Checker';
+    } else {
+      if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-graph-up me-1"></i> Run Resume Analysis';
     }
 
     const resumeSelect = $('#resume-select');
