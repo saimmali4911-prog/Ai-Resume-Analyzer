@@ -667,6 +667,30 @@ window.App = {
     }
   },
 
+  _applyProfileData(u = {}, p = {}) {
+    if ($('#profile-username')) $('#profile-username').textContent = u.username || '';
+    if ($('#first_name')) $('#first_name').value = u.first_name || '';
+    if ($('#last_name')) $('#last_name').value = u.last_name || '';
+    if ($('#email')) $('#email').value = u.email || '';
+    if ($('#phone')) $('#phone').value = p.phone || '';
+    if ($('#target_role')) $('#target_role').value = p.target_role || '';
+    if ($('#bio')) $('#bio').value = p.bio || '';
+
+    // Update avatar display card
+    const fn = u.first_name || '';
+    const ln = u.last_name || '';
+    const fullName = (fn || ln) ? `${fn} ${ln}`.trim() : (u.username || 'Your Name');
+    if ($('#avatar-name')) $('#avatar-name').textContent = fullName;
+    if ($('#avatar-role')) $('#avatar-role').textContent = p.target_role || 'Target Role';
+    if ($('#avatar-email')) $('#avatar-email').textContent = u.email || '—';
+    if ($('#avatar-phone')) $('#avatar-phone').textContent = p.phone || '—';
+
+    // Trigger sync if window.syncAvatar exists
+    if (typeof window.syncAvatar === 'function') {
+      window.syncAvatar();
+    }
+  },
+
   async initProfile() {
     if (!API.isAuthenticated()) {
       window.location.href = 'login.html';
@@ -676,20 +700,24 @@ window.App = {
     const form = $('#profile-form');
     const alertBox = $('#alert-box');
 
+    // 1. Immediately populate from local storage cache so fields are NEVER blank while loading
+    const cachedUser = API.getUser() || {};
+    const cachedProfile = cachedUser.profile || {};
+    if (cachedUser.username || cachedUser.email) {
+      this._applyProfileData(cachedUser, cachedProfile);
+    }
+
+    // 2. Fetch fresh profile from backend
     try {
       const data = await API.auth.me();
       const u = data.user || {};
       const p = u.profile || {};
-
-      $('#profile-username').textContent = u.username || '';
-      $('#first_name').value = u.first_name || '';
-      $('#last_name').value = u.last_name || '';
-      $('#email').value = u.email || '';
-      $('#phone').value = p.phone || '';
-      $('#target_role').value = p.target_role || '';
-      $('#bio').value = p.bio || '';
+      this._applyProfileData(u, p);
+      if (data.user) API.setUser(data.user);
     } catch (err) {
-      alertBox.innerHTML = `<div class="alert alert-danger">${esc(err.message)}</div>`;
+      if (!cachedUser.username && alertBox) {
+        alertBox.innerHTML = `<div class="alert alert-danger">${esc(err.message)}</div>`;
+      }
     }
 
     form?.addEventListener('submit', async (e) => {
@@ -709,6 +737,10 @@ window.App = {
           bio: $('#bio').value.trim()
         };
         const res = await API.auth.updateProfile(payload);
+        if (res.user) {
+          API.setUser(res.user);
+          this._applyProfileData(res.user, res.user.profile || {});
+        }
         alertBox.innerHTML = `<div class="alert alert-success">${esc(res.message || 'Profile updated successfully.')}</div>`;
       } catch (err) {
         alertBox.innerHTML = `<div class="alert alert-danger">${esc(err.message)}</div>`;

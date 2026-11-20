@@ -153,34 +153,41 @@
   <script src="js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      App.initProfile();
-
       // Sync avatar card with form values
-      const syncAvatar = () => {
-        const fn = document.getElementById('first_name').value;
-        const ln = document.getElementById('last_name').value;
-        const em = document.getElementById('email').value;
-        const ph = document.getElementById('phone').value;
-        const ro = document.getElementById('target_role').value;
+      window.syncAvatar = () => {
+        const fn = (document.getElementById('first_name')?.value || '').trim();
+        const ln = (document.getElementById('last_name')?.value || '').trim();
+        const em = (document.getElementById('email')?.value || '').trim();
+        const ph = (document.getElementById('phone')?.value || '').trim();
+        const ro = (document.getElementById('target_role')?.value || '').trim();
+        const un = (document.getElementById('profile-username')?.textContent || '').trim();
         const nameEl = document.getElementById('avatar-name');
         const roleEl = document.getElementById('avatar-role');
         const emEl   = document.getElementById('avatar-email');
         const phEl   = document.getElementById('avatar-phone');
-        if (nameEl) nameEl.textContent = (fn || ln) ? `${fn} ${ln}`.trim() : 'Your Name';
+        if (nameEl) nameEl.textContent = (fn || ln) ? `${fn} ${ln}`.trim() : (un && un !== '...' ? un : 'Your Name');
         if (roleEl) roleEl.textContent = ro || 'Target Role';
         if (emEl)   emEl.textContent   = em || '—';
         if (phEl)   phEl.textContent   = ph || '—';
       };
+
       ['first_name','last_name','email','phone','target_role'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.addEventListener('input', syncAvatar);
+        if (el) {
+          el.addEventListener('input', window.syncAvatar);
+          el.addEventListener('change', window.syncAvatar);
+          el.addEventListener('focus', window.syncAvatar);
+        }
       });
+
+      // Initialize Profile (populates cached + fresh DB data immediately)
+      App.initProfile();
 
       // Reset button
       const resetBtn = document.getElementById('reset-btn');
       if (resetBtn) resetBtn.addEventListener('click', () => {
         document.getElementById('profile-form').reset();
-        syncAvatar();
+        window.syncAvatar();
       });
     });
 
