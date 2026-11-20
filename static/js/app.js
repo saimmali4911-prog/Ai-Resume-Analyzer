@@ -285,10 +285,14 @@ window.App = {
     const alertBox = $('#alert-box');
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (window._loginAlertTimeout) {
+        clearTimeout(window._loginAlertTimeout);
+        window._loginAlertTimeout = null;
+      }
       alertBox.innerHTML = '';
       const btn = $('button[type=submit]', form);
       btn.disabled = true;
-      btn.textContent = 'Logging in...';
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Signing in...';
 
       try {
         const username = $('#username').value.trim();
@@ -297,12 +301,34 @@ window.App = {
         window.location.href = 'dashboard.html';
       } catch (err) {
         let msg = err.message || 'Username or password is not correct.';
-        if (err.status === 401 || msg.toLowerCase().includes('invalid')) {
+        if (err.status === 401 || msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('unauthorized') || msg.toLowerCase().includes('credential')) {
           msg = 'Username or password is not correct.';
         }
-        alertBox.innerHTML = `<div class="alert alert-danger d-flex align-items-center gap-2 mb-3"><i class="bi bi-exclamation-circle-fill"></i> <span>${esc(msg)}</span></div>`;
+        alertBox.innerHTML = `
+          <div id="login-alert" class="alert alert-danger d-flex align-items-center justify-content-between gap-2 mb-3 rounded-3 shadow-sm" style="transition: opacity 0.8s ease, max-height 0.8s ease; overflow: hidden;">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-exclamation-circle-fill flex-shrink-0" style="font-size:1.1rem;"></i>
+              <span>${esc(msg)}</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white" aria-label="Close" onclick="this.closest('#login-alert').remove()" style="font-size:.7rem;"></button>
+          </div>
+        `;
         btn.disabled = false;
-        btn.textContent = 'Login';
+        btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Sign In';
+
+        // Keep the message visible for 20 seconds, then smoothly fade it out
+        window._loginAlertTimeout = setTimeout(() => {
+          const el = document.getElementById('login-alert');
+          if (el) {
+            el.style.opacity = '0';
+            el.style.maxHeight = '0';
+            el.style.marginTop = '0';
+            el.style.marginBottom = '0';
+            el.style.paddingTop = '0';
+            el.style.paddingBottom = '0';
+            setTimeout(() => el.remove(), 800);
+          }
+        }, 20000);
       }
     });
   },
