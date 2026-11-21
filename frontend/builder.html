@@ -1,0 +1,1310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resume Builder &amp; Templates &middot; ResumeXpert AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <!-- html2pdf.js for client-side PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    /* ---- Builder Layout & Preview Styles ---- */
+    .template-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .tpl-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all .25s ease;
+      position: relative;
+      text-align: center;
+    }
+
+    .tpl-card:hover {
+      border-color: rgba(99,102,241,0.5);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    .tpl-card.active {
+      border-color: var(--p);
+      background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
+      box-shadow: 0 0 25px rgba(99,102,241,0.3);
+    }
+
+    .tpl-card .badge-active {
+      display: none;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--grad);
+      color: #fff;
+      font-size: .72rem;
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .tpl-card.active .badge-active {
+      display: inline-block;
+    }
+
+    .tpl-thumb {
+      height: 90px;
+      border-radius: 8px;
+      margin-bottom: .85rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      padding: 6px;
+      gap: 4px;
+      background: #12111d;
+    }
+
+    .tpl-thumb-header { height: 16px; border-radius: 4px; }
+    .tpl-thumb-line { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); width: 80%; }
+    .tpl-thumb-line.short { width: 45%; }
+
+    /* Palette picker */
+    .color-swatch {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all .2s;
+    }
+    .color-swatch:hover, .color-swatch.active {
+      transform: scale(1.15);
+      border-color: #fff;
+      box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+
+    /* Live Preview Paper */
+    .preview-container {
+      position: sticky;
+      top: 20px;
+      background: #141322;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .resume-paper-wrapper {
+      max-height: 85vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 4px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Resume Document Canvas (A4 Aspect Ratio) */
+    .resume-paper {
+      width: 100%;
+      max-width: 780px;
+      min-height: 1020px;
+      background: #ffffff;
+      color: #222222;
+      box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+      border-radius: 4px;
+      font-size: 13px;
+      line-height: 1.5;
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    /* ========================================================
+       TEMPLATE 1: MODERN TECH / EXECUTIVE
+       ======================================================== */
+    .tpl-modern {
+      padding: 0;
+    }
+    .tpl-modern .resume-header {
+      background: var(--theme-color, #4f46e5);
+      color: #ffffff;
+      padding: 2.2rem 2.5rem;
+    }
+    .tpl-modern .resume-header h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+      color: #ffffff;
+    }
+    .tpl-modern .resume-header .title {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .tpl-modern .resume-header .contact-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.9);
+    }
+    .tpl-modern .resume-body {
+      padding: 2rem 2.5rem;
+    }
+    .tpl-modern .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--theme-color, #4f46e5);
+      border-bottom: 2px solid var(--theme-color, #4f46e5);
+      padding-bottom: 4px;
+      margin-bottom: 12px;
+    }
+    .tpl-modern .entry-title { font-weight: 700; font-size: 13.5px; color: #111; }
+    .tpl-modern .entry-meta { font-size: 12px; color: #666; font-weight: 500; }
+    .tpl-modern .skill-pill {
+      display: inline-block;
+      background: #f1f3f9;
+      color: #333;
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      margin: 2px;
+    }
+
+    /* ========================================================
+       TEMPLATE 2: MINIMALIST ATS CLASSIC
+       ======================================================== */
+    .tpl-minimal {
+      padding: 2.5rem;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #1a1a1a;
+    }
+    .tpl-minimal .resume-header {
+      text-align: center;
+      border-bottom: 2px solid #222;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+    .tpl-minimal .resume-header h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+      color: #111;
+      text-transform: uppercase;
+    }
+    .tpl-minimal .resume-header .title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .tpl-minimal .resume-header .contact-bar {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 11.5px;
+      color: #444;
+    }
+    .tpl-minimal .section-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #111;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 3px;
+      margin-top: 14px;
+      margin-bottom: 10px;
+    }
+    .tpl-minimal .entry-title { font-weight: 700; font-size: 13px; color: #000; }
+    .tpl-minimal .entry-meta { font-size: 12px; color: #555; }
+
+    /* ========================================================
+       TEMPLATE 3: CREATIVE SIDEBAR
+       ======================================================== */
+    .tpl-creative {
+      display: grid;
+      grid-template-columns: 32% 68%;
+      min-height: 1020px;
+    }
+    .tpl-creative .side-col {
+      background: #f8fafc;
+      border-right: 1px solid #e2e8f0;
+      padding: 2.2rem 1.5rem;
+    }
+    .tpl-creative .main-col {
+      padding: 2.2rem 2rem;
+    }
+    .tpl-creative .side-col .section-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--theme-color, #0284c7);
+      margin-top: 18px;
+      margin-bottom: 8px;
+      border-bottom: 1.5px solid var(--theme-color, #0284c7);
+      padding-bottom: 2px;
+    }
+    .tpl-creative .main-col .section-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--theme-color, #0284c7);
+      margin-top: 14px;
+      margin-bottom: 10px;
+      border-bottom: 1.5px solid var(--theme-color, #0284c7);
+      padding-bottom: 3px;
+    }
+    .tpl-creative h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+    .tpl-creative .title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--theme-color, #0284c7);
+      margin-bottom: 12px;
+    }
+
+    /* ========================================================
+       TEMPLATE 4: CORPORATE ELEGANT (MERRIWEATHER SERIF)
+       ======================================================== */
+    .tpl-corporate {
+      padding: 2.5rem;
+      font-family: 'Merriweather', Georgia, serif;
+      color: #2c2c2c;
+    }
+    .tpl-corporate .resume-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .tpl-corporate .resume-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--theme-color, #1e3a8a);
+      margin-bottom: 4px;
+      font-family: 'Merriweather', Georgia, serif;
+    }
+    .tpl-corporate .resume-header .title {
+      font-size: 13px;
+      font-weight: 400;
+      color: #666;
+      font-style: italic;
+      margin-bottom: 10px;
+    }
+    .tpl-corporate .resume-header .contact-bar {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 11px;
+      color: #555;
+      font-family: 'Inter', sans-serif;
+    }
+    .tpl-corporate .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--theme-color, #1e3a8a);
+      border-bottom: 1.5px solid var(--theme-color, #1e3a8a);
+      padding-bottom: 3px;
+      margin-top: 14px;
+      margin-bottom: 10px;
+      font-family: 'Inter', sans-serif;
+    }
+    .tpl-corporate .entry-title { font-weight: 700; font-size: 13px; color: #111; }
+    .tpl-corporate .entry-meta { font-size: 11.5px; color: #666; font-style: italic; }
+
+    /* Print View */
+    @media print {
+      body * { visibility: hidden; }
+      .resume-paper, .resume-paper * { visibility: visible; }
+      .resume-paper {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+      .side, #menu, .sidebar-overlay, .page-header, .template-selector, .editor-col, .preview-toolbar {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Mobile drawer button -->
+  <button class="d-lg-none" id="menu"><i class="bi bi-list"></i></button>
+  <div class="sidebar-overlay" id="overlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="side" id="sidebar">
+    <div class="brand"><i class="bi bi-stars"></i> ResumeXpert AI</div>
+
+    <div class="side-section-label">Main</div>
+    <a href="dashboard.html"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+    <a href="upload.html"><i class="bi bi-cloud-arrow-up-fill"></i> Upload Resume</a>
+
+    <div class="side-divider"></div>
+    <div class="side-section-label">AI Tools</div>
+    <a href="tool.html?kind=analysis"><i class="bi bi-graph-up-arrow"></i> Resume Analysis</a>
+    <a href="tool.html?kind=ats"><i class="bi bi-shield-check"></i> ATS Checker</a>
+    <a href="tool.html?kind=match"><i class="bi bi-bullseye"></i> Job Matching</a>
+    <a href="tool.html?kind=improve"><i class="bi bi-magic"></i> AI Improvements</a>
+    <a href="builder.html" class="active"><i class="bi bi-file-earmark-richtext"></i> Resume Builder</a>
+
+    <div class="side-divider"></div>
+    <div class="side-section-label">Account</div>
+    <a href="history.html"><i class="bi bi-clock-history"></i> Analysis History</a>
+    <a href="profile.html"><i class="bi bi-person-circle"></i> My Profile</a>
+
+    <div class="mt-auto pt-3 side-divider"></div>
+    <button id="logout-btn"><i class="bi bi-box-arrow-right"></i> Sign Out</button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Centered Page Header -->
+    <div class="page-header text-center">
+      <div class="d-flex flex-column align-items-center justify-content-center text-center">
+        <div class="feature-icon mb-3" style="width:56px;height:56px;font-size:1.4rem;">
+          <i class="bi bi-file-earmark-richtext"></i>
+        </div>
+        <h2 class="fw-bold text-white mb-2" style="font-size:1.75rem;">Resume Builder &amp; Templates</h2>
+        <p class="text-muted mb-0" style="font-size:.95rem;max-width:640px;">
+          Select from 4 professional resume layouts, customize your content with live preview, and download in Word (DOCX) or PDF format.
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 1: Template Selector -->
+    <div class="mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold text-white mb-0">
+          <i class="bi bi-grid-fill me-2" style="color:var(--accent);"></i>Choose a Template
+        </h5>
+        <span class="text-muted small">Instant live preview updates</span>
+      </div>
+
+      <div class="template-selector">
+        <!-- Template 1: Modern Tech -->
+        <div class="tpl-card active" data-template="tpl-modern">
+          <span class="badge-active"><i class="bi bi-check-lg"></i> Active</span>
+          <div class="tpl-thumb">
+            <div class="tpl-thumb-header" style="background:#4f46e5;"></div>
+            <div class="tpl-thumb-line" style="margin-top:6px;"></div>
+            <div class="tpl-thumb-line short"></div>
+            <div class="tpl-thumb-line"></div>
+          </div>
+          <h6 class="fw-bold text-white mb-1" style="font-size:.92rem;">Modern Tech</h6>
+          <p class="text-muted mb-0" style="font-size:.78rem;">Bold header banner &amp; sleek executive styling</p>
+        </div>
+
+        <!-- Template 2: Minimalist ATS -->
+        <div class="tpl-card" data-template="tpl-minimal">
+          <span class="badge-active"><i class="bi bi-check-lg"></i> Active</span>
+          <div class="tpl-thumb">
+            <div style="height:12px;border-bottom:1.5px solid #fff;margin-bottom:6px;"></div>
+            <div class="tpl-thumb-line"></div>
+            <div class="tpl-thumb-line short"></div>
+            <div class="tpl-thumb-line"></div>
+          </div>
+          <h6 class="fw-bold text-white mb-1" style="font-size:.92rem;">Minimalist ATS</h6>
+          <p class="text-muted mb-0" style="font-size:.78rem;">Clean single-column, 100% ATS friendly</p>
+        </div>
+
+        <!-- Template 3: Creative Sidebar -->
+        <div class="tpl-card" data-template="tpl-creative">
+          <span class="badge-active"><i class="bi bi-check-lg"></i> Active</span>
+          <div class="tpl-thumb" style="flex-direction:row;gap:6px;">
+            <div style="width:30%;background:#0284c7;border-radius:4px;"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:4px;padding-top:4px;">
+              <div class="tpl-thumb-line" style="width:90%;"></div>
+              <div class="tpl-thumb-line short"></div>
+              <div class="tpl-thumb-line" style="width:70%;"></div>
+            </div>
+          </div>
+          <h6 class="fw-bold text-white mb-1" style="font-size:.92rem;">Creative Sidebar</h6>
+          <p class="text-muted mb-0" style="font-size:.78rem;">Two-column split with accent sidebar</p>
+        </div>
+
+        <!-- Template 4: Corporate Elegant -->
+        <div class="tpl-card" data-template="tpl-corporate">
+          <span class="badge-active"><i class="bi bi-check-lg"></i> Active</span>
+          <div class="tpl-thumb text-center">
+            <div style="height:10px;width:60%;margin:0 auto 6px;border-bottom:1.5px solid #1e3a8a;"></div>
+            <div class="tpl-thumb-line" style="margin:0 auto 4px;"></div>
+            <div class="tpl-thumb-line short" style="margin:0 auto;"></div>
+          </div>
+          <h6 class="fw-bold text-white mb-1" style="font-size:.92rem;">Corporate Elegant</h6>
+          <p class="text-muted mb-0" style="font-size:.78rem;">Classic serif, formal executive presentation</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Split Editor & Live Preview -->
+    <div class="row g-4">
+      <!-- Left Column: Form Editor -->
+      <div class="col-xl-5 editor-col">
+        <div class="cardx mb-4" style="height:auto;">
+          <!-- Editor Header Actions -->
+          <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+            <h5 class="fw-bold text-white mb-0">
+              <i class="bi bi-pencil-square me-2" style="color:var(--accent);"></i>Resume Content
+            </h5>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-light" id="btn-load-sample" title="Load sample data to test layout">
+                <i class="bi bi-magic me-1"></i>Sample
+              </button>
+              <button class="btn btn-sm btn-outline-light" id="btn-load-profile" title="Auto-fill with your profile information">
+                <i class="bi bi-person-fill me-1"></i>My Profile
+              </button>
+              <button class="btn btn-sm btn-outline-danger" id="btn-clear" title="Clear all fields">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <form id="resume-form">
+            <!-- 1. Personal Details -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-white mb-3" style="font-size:.9rem;color:var(--p3) !important;">
+                <i class="bi bi-person-vcard me-1"></i> Personal Information
+              </h6>
+              <div class="row g-2 mb-2">
+                <div class="col-sm-6">
+                  <label class="form-label" for="inp-name">Full Name</label>
+                  <input type="text" class="form-control" id="inp-name" placeholder="John Doe">
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label" for="inp-title">Target Role / Title</label>
+                  <input type="text" class="form-control" id="inp-title" placeholder="Senior Software Engineer">
+                </div>
+              </div>
+              <div class="row g-2 mb-2">
+                <div class="col-sm-6">
+                  <label class="form-label" for="inp-email">Email Address</label>
+                  <input type="email" class="form-control" id="inp-email" placeholder="john.doe@example.com">
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label" for="inp-phone">Phone</label>
+                  <input type="text" class="form-control" id="inp-phone" placeholder="+1 (555) 234-5678">
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label" for="inp-location">Location</label>
+                  <input type="text" class="form-control" id="inp-location" placeholder="San Francisco, CA">
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label" for="inp-links">LinkedIn / Portfolio</label>
+                  <input type="text" class="form-control" id="inp-links" placeholder="linkedin.com/in/johndoe">
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Professional Summary -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-white mb-2" style="font-size:.9rem;color:var(--p3) !important;">
+                <i class="bi bi-card-text me-1"></i> Professional Summary
+              </h6>
+              <textarea class="form-control" id="inp-summary" rows="4" placeholder="Dedicated engineer with 5+ years of experience leading teams, optimizing microservices, and driving business impact..."></textarea>
+            </div>
+
+            <!-- 3. Work Experience -->
+            <div class="mb-4">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="fw-bold text-white mb-0" style="font-size:.9rem;color:var(--p3) !important;">
+                  <i class="bi bi-briefcase me-1"></i> Work Experience
+                </h6>
+                <button type="button" class="btn btn-sm btn-grad py-1 px-2.5" id="btn-add-exp" style="font-size:.78rem;">
+                  <i class="bi bi-plus-lg me-1"></i>Add Job
+                </button>
+              </div>
+              <div id="experience-list" class="d-flex flex-column gap-3">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- 4. Education -->
+            <div class="mb-4">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="fw-bold text-white mb-0" style="font-size:.9rem;color:var(--p3) !important;">
+                  <i class="bi bi-mortarboard me-1"></i> Education
+                </h6>
+                <button type="button" class="btn btn-sm btn-grad py-1 px-2.5" id="btn-add-edu" style="font-size:.78rem;">
+                  <i class="bi bi-plus-lg me-1"></i>Add Degree
+                </button>
+              </div>
+              <div id="education-list" class="d-flex flex-column gap-3">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- 5. Skills -->
+            <div class="mb-4">
+              <h6 class="fw-bold text-white mb-2" style="font-size:.9rem;color:var(--p3) !important;">
+                <i class="bi bi-tools me-1"></i> Core Skills (Comma Separated)
+              </h6>
+              <textarea class="form-control" id="inp-skills" rows="3" placeholder="Python, JavaScript, React, Docker, PostgreSQL, AWS, CI/CD, System Architecture, Agile Leadership"></textarea>
+            </div>
+
+            <!-- 6. Projects & Certifications -->
+            <div class="mb-3">
+              <h6 class="fw-bold text-white mb-2" style="font-size:.9rem;color:var(--p3) !important;">
+                <i class="bi bi-trophy me-1"></i> Key Projects or Certifications
+              </h6>
+              <textarea class="form-control" id="inp-projects" rows="3" placeholder="• AWS Certified Solutions Architect (2024)&#10;• Open Source Contributor to Flask &amp; React tools&#10;• Built real-time analytics engine cutting query time by 45%"></textarea>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right Column: Live Interactive Preview & Download Toolbar -->
+      <div class="col-xl-7">
+        <div class="preview-container">
+          <!-- Toolbar -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-2 border-bottom border-secondary border-opacity-25 preview-toolbar">
+            <div class="d-flex align-items-center gap-2">
+              <span class="text-muted small fw-semibold">Theme:</span>
+              <div class="d-flex gap-1.5 align-items-center">
+                <span class="color-swatch active" data-color="#4f46e5" style="background:#4f46e5;" title="Indigo"></span>
+                <span class="color-swatch" data-color="#0284c7" style="background:#0284c7;" title="Sky Blue"></span>
+                <span class="color-swatch" data-color="#059669" style="background:#059669;" title="Emerald Green"></span>
+                <span class="color-swatch" data-color="#e11d48" style="background:#e11d48;" title="Crimson Rose"></span>
+                <span class="color-swatch" data-color="#1e293b" style="background:#1e293b;" title="Slate Black"></span>
+              </div>
+            </div>
+
+            <!-- Download Buttons -->
+            <div class="d-flex flex-wrap gap-2">
+              <button class="btn btn-grad btn-sm px-3" id="btn-download-pdf">
+                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
+              </button>
+              <button class="btn btn-grad-outline btn-sm px-3 text-white" id="btn-download-docx">
+                <i class="bi bi-file-earmark-word-fill me-1"></i> Download DOCX
+              </button>
+              <button class="btn btn-outline-light btn-sm px-2.5" id="btn-print" title="Print document">
+                <i class="bi bi-printer"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Document Paper Wrapper -->
+          <div class="resume-paper-wrapper">
+            <div id="resume-document" class="resume-paper tpl-modern">
+              <!-- Rendered Dynamically via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // State management for builder
+    const ResumeBuilder = {
+      template: 'tpl-modern',
+      themeColor: '#4f46e5',
+      data: {
+        name: 'Alex Morgan',
+        title: 'Senior Full Stack Engineer',
+        email: 'alex.morgan@example.com',
+        phone: '+1 (555) 789-0123',
+        location: 'San Francisco, CA',
+        links: 'linkedin.com/in/alexmorgan',
+        summary: 'Results-driven Senior Full Stack Engineer with 6+ years of experience engineering resilient web architectures, modern cloud platforms, and microservices. Expert in TypeScript, Python, React, and scalable cloud systems.',
+        skills: 'TypeScript, Python, React, Next.js, Node.js, PostgreSQL, Docker, Kubernetes, AWS, GraphQL, CI/CD Pipelines, System Design',
+        projects: '• Real-Time Analytics Pipeline: Scaled streaming metrics ingestion handling 2M events/day with 99.99% uptime.\n• Microservices Architecture: Led complete service decoupling reducing deploy cycle from 2 weeks to 20 minutes.',
+        experience: [
+          {
+            title: 'Lead Software Engineer',
+            company: 'Vanguard Systems',
+            date: '2022 - Present',
+            location: 'San Francisco, CA',
+            details: '• Spearheaded core platform migration to distributed microservices, decreasing latency by 42%.\n• Mentored 8 software engineers and standardized code review practices across engineering teams.'
+          },
+          {
+            title: 'Senior Backend Developer',
+            company: 'Apex Cloud Solutions',
+            date: '2019 - 2022',
+            location: 'San Jose, CA',
+            details: '• Designed and implemented RESTful and GraphQL APIs serving 500,000+ monthly active users.\n• Optimized database queries cutting query processing costs by 30%.'
+          }
+        ],
+        education: [
+          {
+            degree: 'B.S. in Computer Science',
+            school: 'University of California, Berkeley',
+            year: '2015 - 2019'
+          }
+        ]
+      },
+
+      init() {
+        this.bindEvents();
+        this.populateForm();
+        this.renderPreview();
+      },
+
+      bindEvents() {
+        // Template Switcher
+        document.querySelectorAll('.tpl-card').forEach(card => {
+          card.addEventListener('click', () => {
+            document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            this.template = card.dataset.template;
+            this.renderPreview();
+          });
+        });
+
+        // Color Swatches
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+          swatch.addEventListener('click', () => {
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+            this.themeColor = swatch.dataset.color;
+            this.renderPreview();
+          });
+        });
+
+        // Form Inputs Live Binding
+        const fields = ['name', 'title', 'email', 'phone', 'location', 'links', 'summary', 'skills', 'projects'];
+        fields.forEach(f => {
+          const el = document.getElementById('inp-' + f);
+          if (el) {
+            el.addEventListener('input', () => {
+              this.data[f] = el.value;
+              this.renderPreview();
+            });
+          }
+        });
+
+        // Add Experience
+        document.getElementById('btn-add-exp')?.addEventListener('click', () => {
+          this.data.experience.push({ title: 'New Role', company: 'Company Name', date: 'Year - Year', location: 'City, Country', details: '• Describe your achievements and impact here.' });
+          this.renderExperienceFields();
+          this.renderPreview();
+        });
+
+        // Add Education
+        document.getElementById('btn-add-edu')?.addEventListener('click', () => {
+          this.data.education.push({ degree: 'Degree Name', school: 'University Name', year: 'Year - Year' });
+          this.renderEducationFields();
+          this.renderPreview();
+        });
+
+        // Load Sample
+        document.getElementById('btn-load-sample')?.addEventListener('click', () => {
+          this.data = {
+            name: 'Alex Morgan',
+            title: 'Senior Full Stack Engineer',
+            email: 'alex.morgan@example.com',
+            phone: '+1 (555) 789-0123',
+            location: 'San Francisco, CA',
+            links: 'linkedin.com/in/alexmorgan',
+            summary: 'Results-driven Senior Full Stack Engineer with 6+ years of experience engineering resilient web architectures, modern cloud platforms, and microservices. Expert in TypeScript, Python, React, and scalable cloud systems.',
+            skills: 'TypeScript, Python, React, Next.js, Node.js, PostgreSQL, Docker, Kubernetes, AWS, GraphQL, CI/CD Pipelines, System Design',
+            projects: '• Real-Time Analytics Pipeline: Scaled streaming metrics ingestion handling 2M events/day with 99.99% uptime.\n• Microservices Architecture: Led complete service decoupling reducing deploy cycle from 2 weeks to 20 minutes.',
+            experience: [
+              {
+                title: 'Lead Software Engineer',
+                company: 'Vanguard Systems',
+                date: '2022 - Present',
+                location: 'San Francisco, CA',
+                details: '• Spearheaded core platform migration to distributed microservices, decreasing latency by 42%.\n• Mentored 8 software engineers and standardized code review practices across engineering teams.'
+              },
+              {
+                title: 'Senior Backend Developer',
+                company: 'Apex Cloud Solutions',
+                date: '2019 - 2022',
+                location: 'San Jose, CA',
+                details: '• Designed and implemented RESTful and GraphQL APIs serving 500,000+ monthly active users.\n• Optimized database queries cutting query processing costs by 30%.'
+              }
+            ],
+            education: [
+              {
+                degree: 'B.S. in Computer Science',
+                school: 'University of California, Berkeley',
+                year: '2015 - 2019'
+              }
+            ]
+          };
+          this.populateForm();
+          this.renderPreview();
+        });
+
+        // Auto-fill from Profile
+        document.getElementById('btn-load-profile')?.addEventListener('click', async () => {
+          const u = API.getUser() || {};
+          const p = u.profile || {};
+          if (u.first_name || u.username) {
+            this.data.name = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username;
+          }
+          if (u.email) this.data.email = u.email;
+          if (p.phone) this.data.phone = p.phone;
+          if (p.target_role) this.data.title = p.target_role;
+          if (p.bio) this.data.summary = p.bio;
+          this.populateForm();
+          this.renderPreview();
+        });
+
+        // Clear Form
+        document.getElementById('btn-clear')?.addEventListener('click', () => {
+          if (!confirm('Clear all fields?')) return;
+          this.data = { name: '', title: '', email: '', phone: '', location: '', links: '', summary: '', skills: '', projects: '', experience: [], education: [] };
+          this.populateForm();
+          this.renderPreview();
+        });
+
+        // Download PDF
+        document.getElementById('btn-download-pdf')?.addEventListener('click', () => this.exportPDF());
+
+        // Download DOCX
+        document.getElementById('btn-download-docx')?.addEventListener('click', () => this.exportDOCX());
+
+        // Print
+        document.getElementById('btn-print')?.addEventListener('click', () => window.print());
+      },
+
+      populateForm() {
+        document.getElementById('inp-name').value = this.data.name || '';
+        document.getElementById('inp-title').value = this.data.title || '';
+        document.getElementById('inp-email').value = this.data.email || '';
+        document.getElementById('inp-phone').value = this.data.phone || '';
+        document.getElementById('inp-location').value = this.data.location || '';
+        document.getElementById('inp-links').value = this.data.links || '';
+        document.getElementById('inp-summary').value = this.data.summary || '';
+        document.getElementById('inp-skills').value = this.data.skills || '';
+        document.getElementById('inp-projects').value = this.data.projects || '';
+        this.renderExperienceFields();
+        this.renderEducationFields();
+      },
+
+      renderExperienceFields() {
+        const container = document.getElementById('experience-list');
+        if (!container) return;
+        container.innerHTML = this.data.experience.map((exp, idx) => `
+          <div class="card p-3" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-secondary" style="font-size:.75rem;">Job #${idx + 1}</span>
+              <button type="button" class="btn btn-sm text-danger p-0" onclick="ResumeBuilder.removeExp(${idx})">
+                <i class="bi bi-trash"></i> Remove
+              </button>
+            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <input type="text" class="form-control form-control-sm" placeholder="Job Title" value="${exp.title || ''}" oninput="ResumeBuilder.updateExp(${idx}, 'title', this.value)">
+              </div>
+              <div class="col-6">
+                <input type="text" class="form-control form-control-sm" placeholder="Company" value="${exp.company || ''}" oninput="ResumeBuilder.updateExp(${idx}, 'company', this.value)">
+              </div>
+            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <input type="text" class="form-control form-control-sm" placeholder="Duration (e.g. 2021 - Present)" value="${exp.date || ''}" oninput="ResumeBuilder.updateExp(${idx}, 'date', this.value)">
+              </div>
+              <div class="col-6">
+                <input type="text" class="form-control form-control-sm" placeholder="Location" value="${exp.location || ''}" oninput="ResumeBuilder.updateExp(${idx}, 'location', this.value)">
+              </div>
+            </div>
+            <textarea class="form-control form-control-sm" rows="3" placeholder="Key responsibilities and achievements..." oninput="ResumeBuilder.updateExp(${idx}, 'details', this.value)">${exp.details || ''}</textarea>
+          </div>
+        `).join('');
+      },
+
+      renderEducationFields() {
+        const container = document.getElementById('education-list');
+        if (!container) return;
+        container.innerHTML = this.data.education.map((edu, idx) => `
+          <div class="card p-3" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-secondary" style="font-size:.75rem;">Degree #${idx + 1}</span>
+              <button type="button" class="btn btn-sm text-danger p-0" onclick="ResumeBuilder.removeEdu(${idx})">
+                <i class="bi bi-trash"></i> Remove
+              </button>
+            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-7">
+                <input type="text" class="form-control form-control-sm" placeholder="Degree / Certificate" value="${edu.degree || ''}" oninput="ResumeBuilder.updateEdu(${idx}, 'degree', this.value)">
+              </div>
+              <div class="col-5">
+                <input type="text" class="form-control form-control-sm" placeholder="Year" value="${edu.year || ''}" oninput="ResumeBuilder.updateEdu(${idx}, 'year', this.value)">
+              </div>
+            </div>
+            <input type="text" class="form-control form-control-sm" placeholder="School / University" value="${edu.school || ''}" oninput="ResumeBuilder.updateEdu(${idx}, 'school', this.value)">
+          </div>
+        `).join('');
+      },
+
+      updateExp(idx, key, val) {
+        if (this.data.experience[idx]) {
+          this.data.experience[idx][key] = val;
+          this.renderPreview();
+        }
+      },
+      removeExp(idx) {
+        this.data.experience.splice(idx, 1);
+        this.renderExperienceFields();
+        this.renderPreview();
+      },
+
+      updateEdu(idx, key, val) {
+        if (this.data.education[idx]) {
+          this.data.education[idx][key] = val;
+          this.renderPreview();
+        }
+      },
+      removeEdu(idx) {
+        this.data.education.splice(idx, 1);
+        this.renderEducationFields();
+        this.renderPreview();
+      },
+
+      renderPreview() {
+        const doc = document.getElementById('resume-document');
+        if (!doc) return;
+
+        doc.className = `resume-paper ${this.template}`;
+        doc.style.setProperty('--theme-color', this.themeColor);
+
+        const d = this.data;
+        const skillsArray = (d.skills || '').split(',').map(s => s.trim()).filter(Boolean);
+
+        const formatBullets = (txt) => {
+          if (!txt) return '';
+          return txt.split('\n').filter(Boolean).map(line => {
+            const clean = line.replace(/^[•\-\*]\s*/, '').trim();
+            return `<li>${clean}</li>`;
+          }).join('');
+        };
+
+        let html = '';
+
+        if (this.template === 'tpl-modern') {
+          html = `
+            <div class="resume-header">
+              <h1>${d.name || 'Your Name'}</h1>
+              <div class="title">${d.title || 'Professional Title'}</div>
+              <div class="contact-bar">
+                ${d.email ? `<span><i class="bi bi-envelope-fill me-1"></i>${d.email}</span>` : ''}
+                ${d.phone ? `<span><i class="bi bi-telephone-fill me-1"></i>${d.phone}</span>` : ''}
+                ${d.location ? `<span><i class="bi bi-geo-alt-fill me-1"></i>${d.location}</span>` : ''}
+                ${d.links ? `<span><i class="bi bi-link-45deg me-1"></i>${d.links}</span>` : ''}
+              </div>
+            </div>
+            <div class="resume-body">
+              ${d.summary ? `
+                <div class="mb-4">
+                  <div class="section-title">Professional Summary</div>
+                  <p class="mb-0 text-muted-dark" style="line-height:1.6;font-size:12.5px;">${d.summary}</p>
+                </div>
+              ` : ''}
+
+              <div class="row g-4">
+                <div class="col-8">
+                  <!-- Experience -->
+                  ${d.experience && d.experience.length ? `
+                    <div class="mb-4">
+                      <div class="section-title">Work Experience</div>
+                      ${d.experience.map(exp => `
+                        <div class="mb-3">
+                          <div class="d-flex justify-content-between align-items-baseline">
+                            <span class="entry-title">${exp.title || ''}</span>
+                            <span class="entry-meta">${exp.date || ''}</span>
+                          </div>
+                          <div class="entry-meta mb-1.5" style="color:var(--theme-color);font-weight:600;">
+                            ${exp.company || ''} ${exp.location ? `&middot; ${exp.location}` : ''}
+                          </div>
+                          <ul class="mb-0 ps-3" style="font-size:12px;line-height:1.55;color:#333;">
+                            ${formatBullets(exp.details)}
+                          </ul>
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+
+                  <!-- Projects -->
+                  ${d.projects ? `
+                    <div>
+                      <div class="section-title">Projects &amp; Achievements</div>
+                      <ul class="mb-0 ps-3" style="font-size:12px;line-height:1.55;color:#333;">
+                        ${formatBullets(d.projects)}
+                      </ul>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <div class="col-4">
+                  <!-- Skills -->
+                  ${skillsArray.length ? `
+                    <div class="mb-4">
+                      <div class="section-title">Core Skills</div>
+                      <div>
+                        ${skillsArray.map(s => `<span class="skill-pill">${s}</span>`).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
+
+                  <!-- Education -->
+                  ${d.education && d.education.length ? `
+                    <div class="mb-4">
+                      <div class="section-title">Education</div>
+                      ${d.education.map(edu => `
+                        <div class="mb-2">
+                          <div class="entry-title" style="font-size:12.5px;">${edu.degree || ''}</div>
+                          <div class="entry-meta">${edu.school || ''}</div>
+                          <div class="entry-meta">${edu.year || ''}</div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        } else if (this.template === 'tpl-minimal') {
+          html = `
+            <div class="resume-header">
+              <h1>${d.name || 'Your Name'}</h1>
+              <div class="title">${d.title || 'Professional Title'}</div>
+              <div class="contact-bar">
+                ${d.email ? `<span>${d.email}</span>` : ''}
+                ${d.phone ? `<span>&bull; ${d.phone}</span>` : ''}
+                ${d.location ? `<span>&bull; ${d.location}</span>` : ''}
+                ${d.links ? `<span>&bull; ${d.links}</span>` : ''}
+              </div>
+            </div>
+
+            ${d.summary ? `
+              <div class="mb-3">
+                <div class="section-title">Summary</div>
+                <p class="mb-0" style="font-size:12px;line-height:1.6;color:#333;">${d.summary}</p>
+              </div>
+            ` : ''}
+
+            ${d.experience && d.experience.length ? `
+              <div class="mb-3">
+                <div class="section-title">Experience</div>
+                ${d.experience.map(exp => `
+                  <div class="mb-2.5">
+                    <div class="d-flex justify-content-between">
+                      <span class="entry-title">${exp.title || ''} &mdash; <i>${exp.company || ''}</i></span>
+                      <span class="entry-meta">${exp.date || ''}</span>
+                    </div>
+                    <ul class="mb-0 ps-3 mt-1" style="font-size:12px;line-height:1.55;color:#333;">
+                      ${formatBullets(exp.details)}
+                    </ul>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${d.education && d.education.length ? `
+              <div class="mb-3">
+                <div class="section-title">Education</div>
+                ${d.education.map(edu => `
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="entry-title">${edu.degree || ''}, ${edu.school || ''}</span>
+                    <span class="entry-meta">${edu.year || ''}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${skillsArray.length ? `
+              <div class="mb-3">
+                <div class="section-title">Technical Skills</div>
+                <p class="mb-0" style="font-size:12px;line-height:1.6;color:#333;">
+                  ${skillsArray.join(' &bull; ')}
+                </p>
+              </div>
+            ` : ''}
+
+            ${d.projects ? `
+              <div>
+                <div class="section-title">Projects &amp; Certifications</div>
+                <ul class="mb-0 ps-3" style="font-size:12px;line-height:1.55;color:#333;">
+                  ${formatBullets(d.projects)}
+                </ul>
+              </div>
+            ` : ''}
+          `;
+        } else if (this.template === 'tpl-creative') {
+          html = `
+            <div class="side-col">
+              <div style="width:50px;height:50px;border-radius:12px;background:var(--theme-color);color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.2rem;margin-bottom:14px;">
+                ${(d.name || 'A').charAt(0)}
+              </div>
+              <h2 style="font-size:18px;font-weight:800;color:#0f172a;line-height:1.2;margin-bottom:2px;">${d.name || 'Your Name'}</h2>
+              <div class="title">${d.title || 'Professional Title'}</div>
+
+              <div class="section-title">Contact</div>
+              <div class="d-flex flex-column gap-1.5" style="font-size:11.5px;color:#475569;">
+                ${d.email ? `<div><i class="bi bi-envelope me-1"></i>${d.email}</div>` : ''}
+                ${d.phone ? `<div><i class="bi bi-telephone me-1"></i>${d.phone}</div>` : ''}
+                ${d.location ? `<div><i class="bi bi-geo-alt me-1"></i>${d.location}</div>` : ''}
+                ${d.links ? `<div><i class="bi bi-link-45deg me-1"></i>${d.links}</div>` : ''}
+              </div>
+
+              ${skillsArray.length ? `
+                <div class="section-title">Expertise</div>
+                <div class="d-flex flex-wrap gap-1">
+                  ${skillsArray.map(s => `<span style="background:#e2e8f0;color:#1e293b;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600;">${s}</span>`).join('')}
+                </div>
+              ` : ''}
+
+              ${d.education && d.education.length ? `
+                <div class="section-title">Education</div>
+                ${d.education.map(edu => `
+                  <div class="mb-2" style="font-size:11.5px;">
+                    <div style="font-weight:700;color:#1e293b;">${edu.degree || ''}</div>
+                    <div style="color:#64748b;">${edu.school || ''}</div>
+                    <div style="color:#94a3b8;font-size:10.5px;">${edu.year || ''}</div>
+                  </div>
+                `).join('')}
+              ` : ''}
+            </div>
+
+            <div class="main-col">
+              ${d.summary ? `
+                <div class="mb-3">
+                  <div class="section-title">About Me</div>
+                  <p class="mb-0" style="font-size:12px;line-height:1.6;color:#334155;">${d.summary}</p>
+                </div>
+              ` : ''}
+
+              ${d.experience && d.experience.length ? `
+                <div class="mb-3">
+                  <div class="section-title">Experience</div>
+                  ${d.experience.map(exp => `
+                    <div class="mb-3">
+                      <div class="d-flex justify-content-between align-items-baseline">
+                        <strong style="font-size:13px;color:#0f172a;">${exp.title || ''}</strong>
+                        <span style="font-size:11px;color:#64748b;font-weight:600;">${exp.date || ''}</span>
+                      </div>
+                      <div style="font-size:12px;color:var(--theme-color);font-weight:600;margin-bottom:4px;">
+                        ${exp.company || ''} ${exp.location ? `&bull; ${exp.location}` : ''}
+                      </div>
+                      <ul class="mb-0 ps-3" style="font-size:12px;line-height:1.55;color:#475569;">
+                        ${formatBullets(exp.details)}
+                      </ul>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+
+              ${d.projects ? `
+                <div>
+                  <div class="section-title">Projects &amp; Impact</div>
+                  <ul class="mb-0 ps-3" style="font-size:12px;line-height:1.55;color:#475569;">
+                    ${formatBullets(d.projects)}
+                  </ul>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        } else if (this.template === 'tpl-corporate') {
+          html = `
+            <div class="resume-header">
+              <h1>${d.name || 'Your Name'}</h1>
+              <div class="title">${d.title || 'Professional Title'}</div>
+              <div class="contact-bar">
+                ${d.email ? `<span>${d.email}</span>` : ''}
+                ${d.phone ? `<span>| ${d.phone}</span>` : ''}
+                ${d.location ? `<span>| ${d.location}</span>` : ''}
+                ${d.links ? `<span>| ${d.links}</span>` : ''}
+              </div>
+            </div>
+
+            ${d.summary ? `
+              <div class="mb-3">
+                <div class="section-title">Executive Summary</div>
+                <p class="mb-0" style="font-size:12px;line-height:1.65;color:#333;">${d.summary}</p>
+              </div>
+            ` : ''}
+
+            ${d.experience && d.experience.length ? `
+              <div class="mb-3">
+                <div class="section-title">Professional Experience</div>
+                ${d.experience.map(exp => `
+                  <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-baseline">
+                      <span class="entry-title">${exp.title || ''}</span>
+                      <span class="entry-meta">${exp.date || ''}</span>
+                    </div>
+                    <div class="entry-meta mb-1" style="color:var(--theme-color);font-weight:600;font-style:normal;">
+                      ${exp.company || ''} ${exp.location ? `&mdash; ${exp.location}` : ''}
+                    </div>
+                    <ul class="mb-0 ps-3" style="font-size:12px;line-height:1.6;color:#333;font-family:'Inter',sans-serif;">
+                      ${formatBullets(exp.details)}
+                    </ul>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${d.education && d.education.length ? `
+              <div class="mb-3">
+                <div class="section-title">Academic Background</div>
+                ${d.education.map(edu => `
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="entry-title" style="font-size:12px;">${edu.degree || ''}, ${edu.school || ''}</span>
+                    <span class="entry-meta">${edu.year || ''}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${skillsArray.length ? `
+              <div class="mb-3">
+                <div class="section-title">Core Competencies</div>
+                <p class="mb-0" style="font-size:12px;line-height:1.6;color:#333;font-family:'Inter',sans-serif;">
+                  ${skillsArray.join(' &bull; ')}
+                </p>
+              </div>
+            ` : ''}
+
+            ${d.projects ? `
+              <div>
+                <div class="section-title">Key Projects &amp; Credentials</div>
+                <ul class="mb-0 ps-3" style="font-size:12px;line-height:1.6;color:#333;font-family:'Inter',sans-serif;">
+                  ${formatBullets(d.projects)}
+                </ul>
+              </div>
+            ` : ''}
+          `;
+        }
+
+        doc.innerHTML = html;
+      },
+
+      exportPDF() {
+        const doc = document.getElementById('resume-document');
+        if (!doc) return;
+
+        const candidateName = (this.data.name || 'Resume').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const filename = `${candidateName}_Resume.pdf`;
+
+        const opt = {
+          margin: 0,
+          filename: filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        const btn = document.getElementById('btn-download-pdf');
+        const origText = btn ? btn.innerHTML : '';
+        if (btn) btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Exporting...';
+
+        html2pdf().set(opt).from(doc).save().then(() => {
+          if (btn) btn.innerHTML = origText;
+        }).catch(err => {
+          console.error(err);
+          if (btn) btn.innerHTML = origText;
+          // Fallback to browser print dialog
+          window.print();
+        });
+      },
+
+      exportDOCX() {
+        const doc = document.getElementById('resume-document');
+        if (!doc) return;
+
+        const candidateName = (this.data.name || 'Resume').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const filename = `${candidateName}_Resume.doc`;
+
+        // Generate complete MHTML/Word compatible HTML document
+        const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset='utf-8'>
+  <title>${candidateName} Resume</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotOptimizeForBrowser/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #333333; margin: 20mm; }
+    h1 { font-size: 20pt; font-weight: bold; margin-bottom: 2pt; color: #111111; }
+    h2, .section-title { font-size: 13pt; font-weight: bold; border-bottom: 1.5pt solid #4f46e5; padding-bottom: 3pt; margin-top: 14pt; margin-bottom: 8pt; color: #4f46e5; text-transform: uppercase; }
+    .title { font-size: 12pt; color: #555555; font-weight: bold; margin-bottom: 6pt; }
+    .contact-bar { font-size: 9.5pt; color: #666666; margin-bottom: 12pt; }
+    .entry-title { font-weight: bold; font-size: 11pt; color: #111111; }
+    .entry-meta { font-size: 10pt; color: #666666; margin-bottom: 4pt; }
+    ul { margin-top: 3pt; margin-bottom: 8pt; padding-left: 18pt; }
+    li { margin-bottom: 2pt; font-size: 10pt; }
+    p { margin-bottom: 6pt; font-size: 10pt; }
+  </style>
+</head>
+<body>
+  ${doc.innerHTML}
+</body>
+</html>`;
+
+        const blob = new Blob(['\ufeff', header], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      ResumeBuilder.init();
+
+      // Mobile sidebar toggle
+      const menu = document.getElementById('menu');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      if (menu && sidebar && overlay) {
+        menu.addEventListener('click', () => {
+          sidebar.classList.add('open');
+          overlay.classList.add('show');
+        });
+        overlay.addEventListener('click', () => {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('show');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
