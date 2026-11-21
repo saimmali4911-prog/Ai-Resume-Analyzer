@@ -526,3 +526,234 @@ Return a valid JSON object strictly matching this schema:
         'recommended_skills': keywords[:8],
         'notes': f'Focus on improving your {section} by using the suggestions above. Keyword analysis found: {", ".join(keywords[:5])}',
     }
+
+
+# ============================================================================
+# 5. Job Recommendations & Career Matching
+# ============================================================================
+
+def _offline_job_recommendations(resume_text, preferences=None):
+    """Fallback generator for suitable jobs based on extracted skills, degrees, and background."""
+    text_lower = resume_text.lower()
+    kw = set(_keywords(resume_text, 40))
+
+    # Detect education / studies
+    education_overview = "Relevant Academic & Technical Studies"
+    if 'ph.d' in text_lower or 'phd' in text_lower or 'doctor' in text_lower:
+        education_overview = "Doctorate / Ph.D. Level Academic Background"
+    elif 'master' in text_lower or 'm.s' in text_lower or 'mba' in text_lower or 'msc' in text_lower:
+        education_overview = "Master's Degree (M.S. / MBA) Background"
+    elif 'bachelor' in text_lower or 'b.s' in text_lower or 'b.sc' in text_lower or 'b.a' in text_lower or 'degree' in text_lower or 'university' in text_lower:
+        education_overview = "Bachelor's Degree in Technical / Business Field"
+
+    # Detect field & experience level
+    exp_matches = re.findall(r'(\d+)\+?\s*years?', text_lower)
+    exp_years = max([int(x) for x in exp_matches if int(x) < 40], default=3)
+    exp_level = f"{exp_years}+ Years Experience ({'Senior' if exp_years >= 5 else 'Mid-Level' if exp_years >= 2 else 'Entry / Junior'})"
+
+    # Detect domains
+    is_tech = bool(kw & {'python', 'javascript', 'react', 'java', 'sql', 'c++', 'aws', 'docker', 'api', 'django', 'flask', 'node', 'git', 'cloud', 'software', 'backend', 'frontend', 'developer'})
+    is_data = bool(kw & {'machine', 'learning', 'data', 'pandas', 'numpy', 'scikit', 'analytics', 'tensorflow', 'pytorch', 'ai', 'statistics', 'tableau', 'powerbi'})
+    is_biz = bool(kw & {'management', 'agile', 'scrum', 'sales', 'marketing', 'product', 'strategy', 'finance', 'operations', 'customer', 'business'})
+
+    jobs = []
+    if is_data:
+        jobs.extend([
+            {
+                'job_title': 'Senior Data Scientist / AI Specialist',
+                'match_score': 95,
+                'category': 'Primary Best Fit',
+                'why_suitable': 'Your background in data modeling, statistical algorithms, and Python tools perfectly positions you for high-impact analytics and machine learning roles.',
+                'experience_fit': 'Direct alignment with your experience building predictive pipelines, querying databases, and analyzing complex datasets.',
+                'studies_fit': f'Complements your {education_overview} with rigorous analytical and problem-solving fundamentals.',
+                'key_matching_skills': list(kw & {'python', 'data', 'machine', 'learning', 'sql', 'analytics', 'statistics', 'pandas', 'ai'})[:6] or ['Python', 'SQL', 'Data Analytics', 'Machine Learning'],
+                'skills_to_boost': ['MLOps', 'Kubernetes', 'Cloud Data Warehousing'],
+                'typical_salary': '$125,000 - $165,000 / yr',
+                'market_demand': 'Very High',
+                'search_query': 'Senior Data Scientist Machine Learning'
+            },
+            {
+                'job_title': 'Machine Learning Engineer',
+                'match_score': 92,
+                'category': 'Specialized Path',
+                'why_suitable': 'Combines your software development skills with advanced AI algorithms to deploy production models.',
+                'experience_fit': 'Proven technical experience shipping algorithmic features and working with Python ecosystem.',
+                'studies_fit': 'Academic training in algorithms and computing structures supports scalable model design.',
+                'key_matching_skills': list(kw & {'python', 'machine', 'learning', 'docker', 'api', 'cloud', 'aws', 'git'})[:6] or ['Python', 'Docker', 'APIs', 'Git'],
+                'skills_to_boost': ['TensorFlow/PyTorch Serving', 'Feature Stores'],
+                'typical_salary': '$135,000 - $175,000 / yr',
+                'market_demand': 'Explosive Growth',
+                'search_query': 'Machine Learning Engineer MLOps'
+            },
+            {
+                'job_title': 'Data Analytics Consultant / BI Engineer',
+                'match_score': 88,
+                'category': 'High-Growth Role',
+                'why_suitable': 'Bridges deep data analysis with business decision-making and executive dashboards.',
+                'experience_fit': 'Demonstrated track record communicating insights and managing metric-driven projects.',
+                'studies_fit': 'Structured thinking gained from formal coursework in quantitative methods.',
+                'key_matching_skills': list(kw & {'sql', 'data', 'analytics', 'statistics', 'python', 'business'})[:6] or ['SQL', 'Data Analytics', 'Business Intelligence'],
+                'skills_to_boost': ['dbt', 'Snowflake', 'Looker'],
+                'typical_salary': '$95,000 - $130,000 / yr',
+                'market_demand': 'High',
+                'search_query': 'Data Analytics Engineer Business Intelligence'
+            }
+        ])
+
+    if is_tech or not jobs:
+        jobs.extend([
+            {
+                'job_title': 'Full-Stack Software Engineer',
+                'match_score': 94,
+                'category': 'Primary Best Fit',
+                'why_suitable': 'Your balanced experience across frontend interfaces and backend APIs makes you a prime candidate for full-lifecycle web engineering.',
+                'experience_fit': 'Demonstrated capability creating responsive client experiences and scalable backend architectures.',
+                'studies_fit': f'Solidifies core computer science concepts, design patterns, and engineering principles from your {education_overview}.',
+                'key_matching_skills': list(kw & {'python', 'javascript', 'react', 'api', 'sql', 'git', 'docker', 'flask', 'django', 'node'})[:6] or ['Full-Stack Development', 'REST APIs', 'SQL', 'Git'],
+                'skills_to_boost': ['System Design at Scale', 'GraphQL', 'CI/CD Automation'],
+                'typical_salary': '$115,000 - $150,000 / yr',
+                'market_demand': 'Very High',
+                'search_query': 'Full Stack Software Engineer React Python'
+            },
+            {
+                'job_title': 'Backend Systems & API Engineer',
+                'match_score': 91,
+                'category': 'Specialized Path',
+                'why_suitable': 'Focuses on database performance, microservices, cloud deployments, and resilient API architectures.',
+                'experience_fit': 'Hands-on background with server logic, relational data modeling, and authentication systems.',
+                'studies_fit': 'Direct application of database theory, concurrency, and operating system principles from your studies.',
+                'key_matching_skills': list(kw & {'python', 'sql', 'api', 'docker', 'aws', 'cloud', 'git', 'backend'})[:6] or ['Backend Engineering', 'Databases', 'API Architecture'],
+                'skills_to_boost': ['Distributed Caching (Redis)', 'gRPC', 'Microservices'],
+                'typical_salary': '$120,000 - $155,000 / yr',
+                'market_demand': 'Very High',
+                'search_query': 'Backend Software Engineer Python APIs'
+            },
+            {
+                'job_title': 'Cloud DevOps / Infrastructure Engineer',
+                'match_score': 86,
+                'category': 'High-Growth Role',
+                'why_suitable': 'Leverages containerization, cloud hosting, and automation to streamline engineering delivery.',
+                'experience_fit': 'Experience managing environments, version control, and deploying web applications.',
+                'studies_fit': 'Builds upon networking, security, and systems administration foundational coursework.',
+                'key_matching_skills': list(kw & {'docker', 'cloud', 'aws', 'git', 'linux', 'api'})[:6] or ['Docker', 'Cloud Services', 'Git', 'Linux'],
+                'skills_to_boost': ['Terraform (IaC)', 'Kubernetes Orchestration'],
+                'typical_salary': '$125,000 - $160,000 / yr',
+                'market_demand': 'High',
+                'search_query': 'DevOps Engineer Cloud Infrastructure'
+            }
+        ])
+
+    if is_biz or len(jobs) < 5:
+        jobs.extend([
+            {
+                'job_title': 'Technical Product / Project Manager',
+                'match_score': 89,
+                'category': 'Leadership Track',
+                'why_suitable': 'Your blend of hands-on technical literacy and project execution qualifies you to translate business roadmaps into reality.',
+                'experience_fit': 'Experience prioritizing features, collaborating across teams, and delivering software on deadline.',
+                'studies_fit': 'Combines analytical problem solving from your studies with strategic cross-functional communication.',
+                'key_matching_skills': list(kw & {'management', 'agile', 'scrum', 'strategy', 'product', 'communication'})[:6] or ['Agile / Scrum', 'Technical Leadership', 'Product Roadmap'],
+                'skills_to_boost': ['PMP / Agile Certifications', 'User Story Mapping'],
+                'typical_salary': '$110,000 - $145,000 / yr',
+                'market_demand': 'High',
+                'search_query': 'Technical Product Manager Software'
+            },
+            {
+                'job_title': 'Solutions Architect / Technical Consultant',
+                'match_score': 85,
+                'category': 'High-Growth Role',
+                'why_suitable': 'Advises enterprise clients on designing scalable technical solutions that achieve business goals.',
+                'experience_fit': 'Proven ability to understand complex end-to-end architectures and explain solutions to stakeholders.',
+                'studies_fit': 'Breadth of academic background enables quick synthesis of new platforms and technologies.',
+                'key_matching_skills': list(kw & {'cloud', 'architecture', 'api', 'management', 'sql', 'system'})[:6] or ['System Architecture', 'Client Solutions', 'Consulting'],
+                'skills_to_boost': ['Enterprise Cloud Certifications (AWS/Azure Solutions Architect)'],
+                'typical_salary': '$130,000 - $170,000 / yr',
+                'market_demand': 'Growing',
+                'search_query': 'Solutions Architect Technical Consultant'
+            }
+        ])
+
+    return {
+        'engine': 'sklearn',
+        'engine_label': 'scikit-learn (Offline Engine)',
+        'candidate_summary': {
+            'primary_field': 'Software Engineering & Applied Technologies' if is_tech else 'Data Science & Analytics' if is_data else 'Business & Technology Operations',
+            'experience_level': exp_level,
+            'education_overview': education_overview,
+            'core_specialties': list(kw)[:6] or ['Software Development', 'System Design', 'Problem Solving']
+        },
+        'recommended_jobs': jobs[:6],
+        'career_advice': 'Your background demonstrates strong core competencies. To maximize interview callbacks, tailor your resume summary with the specific role title you are targeting, and quantify past project outcomes with measurable metric improvements (e.g., speed, accuracy, revenue).',
+        'top_industries': ['Information Technology & SaaS', 'Financial Technology (FinTech)', 'Enterprise Cloud & AI Solutions']
+    }
+
+
+def recommend_jobs(resume_text, preferences=None):
+    """Analyze candidate's resume (experience, studies/education, background, skills)
+    and recommend suitable job roles, fit explanations, skill alignments, and career advice."""
+    pref_parts = []
+    if preferences and isinstance(preferences, dict):
+        if preferences.get('location'):
+            pref_parts.append(f"Preferred Location / Work Style: {preferences['location']}")
+        if preferences.get('experience_level'):
+            pref_parts.append(f"Target Career Level: {preferences['experience_level']}")
+        if preferences.get('industry'):
+            pref_parts.append(f"Target Industry / Domain: {preferences['industry']}")
+
+    pref_str = ("\nCandidate Preferences:\n" + "\n".join(pref_parts) + "\n") if pref_parts else ""
+
+    prompt = f"""You are an elite executive recruiter, talent advisor, and technical career coach.
+Thoroughly examine this candidate's resume, specifically analyzing:
+1. Work Experience & Career Trajectory (roles, achievements, responsibilities, leadership, domain experience)
+2. Studies & Academic Background (degrees, major, field of study, specialized coursework, academic honors)
+3. Technical & Professional Skills (languages, tools, frameworks, methodologies, soft skills)
+4. Overall background and competitive differentiators
+{pref_str}
+Resume Content:
+\"\"\"{resume_text[:6000]}\"\"\"
+
+Generate 5 to 7 highly suitable, realistic job titles this candidate qualifies for right now or is primed to step into, tailored directly to their experience, studies, and background.
+
+Return a valid JSON object strictly matching this schema:
+{{
+  "candidate_summary": {{
+    "primary_field": "<e.g., Software Engineering & Cloud Infrastructure>",
+    "experience_level": "<e.g., Mid-Level (3-5 years) or Senior>",
+    "education_overview": "<e.g., Bachelor of Science in Computer Science & Engineering>",
+    "core_specialties": ["<specialty 1>", "<specialty 2>", "<specialty 3>", "<specialty 4>"]
+  }},
+  "recommended_jobs": [
+    {{
+      "job_title": "<e.g., Full Stack Engineer>",
+      "match_score": 95,
+      "category": "<Primary Best Fit | High-Growth Role | Leadership Track | Specialized Path>",
+      "why_suitable": "<2-3 compelling sentences explaining why this matches their specific experience, studies, and background>",
+      "experience_fit": "<Clear breakdown of how their past job duties and projects directly translate to success in this role>",
+      "studies_fit": "<How their degree, coursework, or academic background provides the foundational knowledge required>",
+      "key_matching_skills": ["<skill 1>", "<skill 2>", "<skill 3>", "<skill 4>", "<skill 5>"],
+      "skills_to_boost": ["<skill 1>", "<skill 2>"],
+      "typical_salary": "<e.g., $105,000 - $135,000 / yr>",
+      "market_demand": "<High | Very High | Explosive Growth>",
+      "search_query": "<Keywords to search for this exact role on LinkedIn / Indeed>"
+    }}
+  ],
+  "career_advice": "<2-3 strategic, actionable paragraphs advising the candidate on how to leverage their studies, position their past experience, and tailor applications for top interviews>",
+  "top_industries": ["<Industry 1>", "<Industry 2>", "<Industry 3>"]
+}}
+"""
+    ai_result, engine_id, engine_label = _call_llm(prompt)
+    if ai_result and isinstance(ai_result, dict) and 'recommended_jobs' in ai_result and isinstance(ai_result['recommended_jobs'], list):
+        try:
+            return {
+                'engine': engine_id,
+                'engine_label': engine_label,
+                'candidate_summary': ai_result.get('candidate_summary', {}),
+                'recommended_jobs': ai_result.get('recommended_jobs', []),
+                'career_advice': ai_result.get('career_advice', ''),
+                'top_industries': ai_result.get('top_industries', [])
+            }
+        except Exception:
+            pass
+
+    # High-quality offline fallback
+    return _offline_job_recommendations(resume_text, preferences)

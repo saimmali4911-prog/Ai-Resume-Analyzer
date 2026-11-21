@@ -464,6 +464,46 @@ def run_analysis(kind):
         'created': obj.created.isoformat() if obj.created else None
     })
 
+@app.route('/api/jobs/recommend', methods=['POST'])
+@login_required
+def recommend_jobs_api():
+    data = request.get_json(silent=True) or request.form or {}
+    rid = data.get('resume_id') or data.get('resume')
+    resume_text = ''
+    resume_title = 'Resume'
+
+    if rid:
+        try:
+            rid = int(rid)
+            resume = Resume.query.filter_by(id=rid, user_id=current_user.id).first()
+            if resume:
+                resume_text = resume.text or ''
+                resume_title = resume.title or 'Resume'
+        except (ValueError, TypeError):
+            pass
+
+    if not resume_text:
+        resume_text = (data.get('resume_text') or '').strip()
+
+    if not resume_text or len(resume_text.strip()) < 50:
+        return jsonify({'error': 'Please select a valid resume or provide at least 50 characters of resume text.'}), 400
+
+    preferences = {
+        'location': (data.get('location') or '').strip(),
+        'experience_level': (data.get('experience_level') or '').strip(),
+        'industry': (data.get('industry') or '').strip()
+    }
+
+    try:
+        res_dict = nlp.recommend_jobs(resume_text, preferences)
+        return jsonify({
+            'success': True,
+            'resume_title': resume_title,
+            'result': res_dict
+        })
+    except Exception as e:
+        return jsonify({'error': f'Job recommendation error: {str(e)}'}), 500
+
 @app.route('/api/analysis/history', methods=['GET'])
 @login_required
 def analysis_history():

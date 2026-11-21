@@ -197,6 +197,16 @@ const API = (() => {
       }
     },
 
+    // Jobs Matching & Recommendations
+    jobs: {
+      async recommend(params) {
+        return request('/api/jobs/recommend', {
+          method: 'POST',
+          body: JSON.stringify(params)
+        });
+      }
+    },
+
     // Dashboard
     dashboard: {
       async getData() {

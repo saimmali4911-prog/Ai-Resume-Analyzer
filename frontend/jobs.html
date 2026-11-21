@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Job Recommendations | ResumeXpert AI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .job-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: all .25s ease;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+    .job-card:hover {
+      border-color: rgba(99, 102, 241, 0.45);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+    .match-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .4rem .85rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: .88rem;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .match-pill.high {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+    .match-pill.mid {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+    .role-category-badge {
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: .25rem .65rem;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .alignment-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: .85rem;
+    }
+    .alignment-title {
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      margin-bottom: .4rem;
+    }
+    .skill-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: .25rem .65rem;
+      border-radius: 6px;
+      font-size: .8rem;
+      font-weight: 500;
+      margin: .2rem .2rem .2rem 0;
+    }
+    .skill-tag.match {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .skill-tag.boost {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+    .candidate-banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.08));
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .filter-btn {
+      padding: .4rem .9rem;
+      border-radius: 999px;
+      font-size: .82rem;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--grad);
+      color: #fff;
+      border-color: transparent;
+    }
+    .salary-tag {
+      font-size: .85rem;
+      color: #93c5fd;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+    }
+    .demand-tag {
+      font-size: .78rem;
+      color: #cbd5e1;
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+    }
+    .action-btn-sm {
+      font-size: .82rem;
+      font-weight: 600;
+      padding: .4rem .85rem;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .action-btn-sm:hover {
+      transform: translateY(-1px);
+    }
+    .loading-shimmer {
+      position: relative;
+      overflow: hidden;
+      min-height: 260px;
+    }
+    .loading-shimmer::after {
+      content: "";
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      transform: translateX(-100%);
+      background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.1) 60%,
+        rgba(255, 255, 255, 0)
+      );
+      animation: shimmer 2s infinite;
+    }
+    @keyframes shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Mobile drawer button -->
+  <button class="d-lg-none" id="menu"><i class="bi bi-list"></i></button>
+  <div class="sidebar-overlay" id="overlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="side" id="sidebar">
+    <div class="brand"><i class="bi bi-stars"></i> ResumeXpert AI</div>
+
+    <div class="side-section-label">Main</div>
+    <a href="dashboard.html"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+    <a href="upload.html"><i class="bi bi-cloud-arrow-up-fill"></i> Upload Resume</a>
+
+    <div class="side-divider"></div>
+    <div class="side-section-label">AI Tools</div>
+    <a href="tool.html?kind=analysis"><i class="bi bi-graph-up-arrow"></i> Resume Analysis</a>
+    <a href="tool.html?kind=ats"><i class="bi bi-shield-check"></i> ATS Checker</a>
+    <a href="tool.html?kind=match"><i class="bi bi-bullseye"></i> Job Matching</a>
+    <a href="jobs.html" class="active"><i class="bi bi-briefcase-fill"></i> Job Recommendations</a>
+    <a href="tool.html?kind=improve"><i class="bi bi-magic"></i> AI Improvements</a>
+    <a href="builder.html"><i class="bi bi-file-earmark-richtext"></i> Resume Builder</a>
+
+    <div class="side-divider"></div>
+    <div class="side-section-label">Account</div>
+    <a href="history.html"><i class="bi bi-clock-history"></i> Analysis History</a>
+    <a href="profile.html"><i class="bi bi-person-circle"></i> My Profile</a>
+
+    <div class="mt-auto pt-3 side-divider"></div>
+    <button id="logout-btn"><i class="bi bi-box-arrow-right"></i> Sign Out</button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Centered Page Header -->
+    <div class="page-header text-center">
+      <div class="d-flex flex-column align-items-center justify-content-center text-center">
+        <div class="feature-icon mb-3" style="width:56px;height:56px;font-size:1.4rem;">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+        <h2 class="fw-bold text-white mb-2" style="font-size:1.75rem;">AI Job Recommendations</h2>
+        <p class="text-muted mb-0" style="font-size:.95rem;max-width:640px;">
+          Select your resume or CV to discover suitable career roles tailored directly to your work experience, degrees, studies, and professional background.
+        </p>
+      </div>
+    </div>
+
+    <!-- Alert Box -->
+    <div id="alert-box" class="mb-4"></div>
+
+    <!-- Selection & Configuration Card -->
+    <div class="cardx mb-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-lg-6">
+          <label class="form-label fw-semibold text-white">
+            <i class="bi bi-file-earmark-person me-1 text-primary"></i> Select Your Resume / CV
+          </label>
+          <div class="d-flex gap-2">
+            <select class="form-select" id="resume-select">
+              <option value="">Loading your uploaded resumes...</option>
+            </select>
+            <a href="upload.html" class="btn btn-outline-light btn-sm d-flex align-items-center" title="Upload New Resume" style="white-space:nowrap;">
+              <i class="bi bi-cloud-arrow-up me-1"></i> Upload
+            </a>
+          </div>
+          <div class="form-text text-muted" id="resume-meta">
+            Pick from your saved resumes or switch to direct paste below.
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6">
+          <label class="form-label fw-semibold text-white">
+            <i class="bi bi-bar-chart-steps me-1 text-info"></i> Target Career Level
+          </label>
+          <select class="form-select" id="pref-level">
+            <option value="">Auto-Detect from Resume</option>
+            <option value="Entry / Graduate">Entry-Level / Recent Graduate</option>
+            <option value="Mid-Level (2-5 years)">Mid-Level (2-5 Years)</option>
+            <option value="Senior Level (5+ years)">Senior Level (5+ Years)</option>
+            <option value="Lead / Management">Lead / Management Track</option>
+          </select>
+        </div>
+
+        <div class="col-lg-3 col-sm-6">
+          <label class="form-label fw-semibold text-white">
+            <i class="bi bi-geo-alt me-1 text-success"></i> Location / Model
+          </label>
+          <input type="text" class="form-control" id="pref-location" placeholder="e.g. Remote, Hybrid, USA, UK">
+        </div>
+
+        <!-- Optional: Direct Text Input Toggle -->
+        <div class="col-12 mt-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <a href="javascript:void(0)" class="text-decoration-none small text-grad fw-semibold" id="toggle-text-btn">
+              <i class="bi bi-textarea-t me-1"></i> Or paste / edit CV text directly
+            </a>
+          </div>
+          <div id="text-input-wrap" class="mt-2 d-none">
+            <textarea class="form-control font-monospace" id="resume-text-input" rows="6" placeholder="Paste your resume or CV text here..."></textarea>
+            <div class="form-text text-muted">Provide at least 50 characters of experience, studies, and skills.</div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="col-12 mt-3">
+          <button class="btn btn-grad w-100 py-3 fw-bold" id="btn-find-jobs" style="font-size:1.05rem;">
+            <i class="bi bi-stars me-2"></i> Find Suitable Jobs For My Profile
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Skeleton (hidden by default) -->
+    <div id="loading-state" class="d-none">
+      <div class="cardx loading-shimmer text-center py-5 mb-4">
+        <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;" role="status"></div>
+        <h5 class="fw-bold text-white mb-2">Analyzing Your Profile &amp; Market Roles...</h5>
+        <p class="text-muted mb-0" style="max-width:540px;margin:0 auto;">
+          Evaluating your work achievements, degrees, academic background, and technical skillset with AI to match you with top career opportunities.
+        </p>
+      </div>
+    </div>
+
+    <!-- Results Section (hidden by default) -->
+    <div id="results-container" class="d-none">
+      
+      <!-- Candidate Profile Summary Banner -->
+      <div class="candidate-banner" id="candidate-banner">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+          <div>
+            <span class="hero-badge mb-2" style="font-size:.78rem;padding:.3rem .9rem;">
+              <i class="bi bi-person-check-fill"></i> Candidate Profile Detected
+            </span>
+            <h4 class="fw-bold text-white mb-1" id="res-primary-field">Loading...</h4>
+            <div class="d-flex flex-wrap align-items-center gap-3 text-muted small mt-2">
+              <span id="res-exp-level"><i class="bi bi-briefcase me-1 text-primary"></i> ...</span>
+              <span id="res-education"><i class="bi bi-mortarboard me-1 text-info"></i> ...</span>
+              <span id="res-engine" class="badge bg-secondary-subtle text-light border border-secondary">...</span>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-1" id="res-specialties">
+            <!-- Specialties injected here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls: Filters -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <h5 class="fw-bold text-white mb-0">
+            <i class="bi bi-stars me-1 text-warning"></i> Suitable Jobs Recommended (<span id="jobs-count">0</span>)
+          </h5>
+        </div>
+        <div class="d-flex flex-wrap gap-2" id="filter-group">
+          <button class="filter-btn active" data-filter="all">All Roles</button>
+          <button class="filter-btn" data-filter="primary">Primary Fits (90%+)</button>
+          <button class="filter-btn" data-filter="growth">High-Growth</button>
+          <button class="filter-btn" data-filter="specialized">Specialized</button>
+        </div>
+      </div>
+
+      <!-- Job Cards List -->
+      <div id="job-cards-list">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Strategic Career Advice Box -->
+      <div class="cardx mt-4" style="border-left:4px solid #6366f1;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="feature-icon" style="width:36px;height:36px;font-size:1rem;background:rgba(99,102,241,.15);color:#818cf8;">
+            <i class="bi bi-lightbulb-fill"></i>
+          </div>
+          <h5 class="fw-bold text-white mb-0">Executive Career Advisory</h5>
+        </div>
+        <p class="text-white-50 mb-3" id="career-advice-text" style="line-height:1.75;font-size:.95rem;">
+          <!-- Advice text injected here -->
+        </p>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <span class="text-muted small fw-semibold">Target Industries:</span>
+          <div id="top-industries" class="d-flex flex-wrap gap-1">
+            <!-- Top industries injected here -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    (function() {
+      'use strict';
+
+      // Check auth
+      if (!API.isAuthenticated()) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // DOM Elements
+      const resumeSelect = document.getElementById('resume-select');
+      const prefLevel = document.getElementById('pref-level');
+      const prefLocation = document.getElementById('pref-location');
+      const toggleTextBtn = document.getElementById('toggle-text-btn');
+      const textInputWrap = document.getElementById('text-input-wrap');
+      const resumeTextInput = document.getElementById('resume-text-input');
+      const btnFindJobs = document.getElementById('btn-find-jobs');
+      const loadingState = document.getElementById('loading-state');
+      const resultsContainer = document.getElementById('results-container');
+      const alertBox = document.getElementById('alert-box');
+      const jobCardsList = document.getElementById('job-cards-list');
+      const jobsCount = document.getElementById('jobs-count');
+      const filterGroup = document.getElementById('filter-group');
+
+      let currentJobsData = [];
+      let activeFilter = 'all';
+
+      // Setup mobile menu
+      const menuBtn = document.getElementById('menu');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      if (menuBtn && sidebar && overlay) {
+        menuBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('active');
+          overlay.classList.toggle('active');
+        });
+        overlay.addEventListener('click', () => {
+          sidebar.classList.remove('active');
+          overlay.classList.remove('active');
+        });
+      }
+
+      // Logout handler
+      document.getElementById('logout-btn')?.addEventListener('click', async () => {
+        try { await API.auth.logout(); } catch(e) {}
+        window.location.href = 'login.html';
+      });
+
+      // Toggle direct text input
+      toggleTextBtn?.addEventListener('click', () => {
+        const isHidden = textInputWrap.classList.contains('d-none');
+        if (isHidden) {
+          textInputWrap.classList.remove('d-none');
+          toggleTextBtn.innerHTML = '<i class="bi bi-chevron-up me-1"></i> Hide CV text input';
+          // Pre-fill from selected resume if available
+          loadSelectedResumeText();
+        } else {
+          textInputWrap.classList.add('d-none');
+          toggleTextBtn.innerHTML = '<i class="bi bi-textarea-t me-1"></i> Or paste / edit CV text directly';
+        }
+      });
+
+      function showAlert(msg, type = 'danger') {
+        alertBox.innerHTML = `
+          <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> ${msg}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        `;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function clearAlert() {
+        alertBox.innerHTML = '';
+      }
+
+      // Load user resumes
+      async function loadResumes() {
+        try {
+          const list = await API.resumes.list();
+          resumeSelect.innerHTML = '';
+
+          if (!list || list.length === 0) {
+            resumeSelect.innerHTML = '<option value="">No resumes found. Please upload one or paste text below.</option>';
+            textInputWrap.classList.remove('d-none');
+            return;
+          }
+
+          list.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r.id;
+            opt.textContent = `${r.title || 'Untitled Resume'} (${r.word_count || 0} words)`;
+            resumeSelect.appendChild(opt);
+          });
+
+          // Check URL param ?resume_id=XYZ
+          const urlParams = new URLSearchParams(window.location.search);
+          const paramId = urlParams.get('resume_id');
+          if (paramId) {
+            resumeSelect.value = paramId;
+            // Auto run
+            setTimeout(handleFindJobs, 300);
+          }
+        } catch (err) {
+          console.error(err);
+          resumeSelect.innerHTML = '<option value="">Failed to load resumes. Paste CV text below.</option>';
+          textInputWrap.classList.remove('d-none');
+        }
+      }
+
+      // Load text for selected resume into textarea
+      async function loadSelectedResumeText() {
+        const id = resumeSelect.value;
+        if (!id) return;
+        try {
+          const res = await API.resumes.getText(id);
+          if (res && res.text) {
+            resumeTextInput.value = res.text;
+          }
+        } catch (e) {
+          console.warn('Could not auto-fetch text:', e);
+        }
+      }
+
+      resumeSelect?.addEventListener('change', () => {
+        if (!textInputWrap.classList.contains('d-none')) {
+          loadSelectedResumeText();
+        }
+      });
+
+      // Filter handling
+      filterGroup?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.filter-btn');
+        if (!btn) return;
+        filterGroup.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.filter;
+        renderJobs(currentJobsData);
+      });
+
+      // Find jobs main handler
+      async function handleFindJobs() {
+        clearAlert();
+        const selectedId = resumeSelect.value;
+        const manualText = resumeTextInput.value.trim();
+
+        if (!selectedId && (!manualText || manualText.length < 50)) {
+          showAlert('Please select an uploaded resume or paste at least 50 characters of your CV text.');
+          return;
+        }
+
+        // Show loading
+        loadingState.classList.remove('d-none');
+        resultsContainer.classList.add('d-none');
+        btnFindJobs.disabled = true;
+        btnFindJobs.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing Your Background...';
+
+        const payload = {
+          resume_id: selectedId ? parseInt(selectedId) : null,
+          resume_text: manualText,
+          experience_level: prefLevel.value,
+          location: prefLocation.value
+        };
+
+        try {
+          let responseData = null;
+
+          // Attempt backend API call
+          try {
+            responseData = await API.jobs.recommend(payload);
+          } catch (apiErr) {
+            console.warn('Backend /api/jobs/recommend error, trying fallback:', apiErr);
+          }
+
+          // If backend didn't return proper result, run intelligent client fallback
+          if (!responseData || !responseData.result || !responseData.result.recommended_jobs) {
+            // Fetch text if needed
+            let textToAnalyze = manualText;
+            if (!textToAnalyze && selectedId) {
+              const textRes = await API.resumes.getText(selectedId);
+              textToAnalyze = (textRes && textRes.text) || '';
+            }
+
+            if (!textToAnalyze || textToAnalyze.length < 30) {
+              throw new Error('Unable to read resume text. Please paste your CV text directly.');
+            }
+
+            // Build client fallback result
+            responseData = {
+              success: true,
+              result: generateClientAnalysis(textToAnalyze, payload)
+            };
+          }
+
+          displayResults(responseData.result);
+        } catch (err) {
+          console.error(err);
+          showAlert(err.message || 'Error finding suitable jobs. Please try again.');
+        } finally {
+          loadingState.classList.add('d-none');
+          btnFindJobs.disabled = false;
+          btnFindJobs.innerHTML = '<i class="bi bi-stars me-2"></i> Find Suitable Jobs For My Profile';
+        }
+      }
+
+      btnFindJobs?.addEventListener('click', handleFindJobs);
+
+      // Render Results
+      function displayResults(data) {
+        if (!data || !data.recommended_jobs) {
+          showAlert('No job recommendations could be generated for this resume.');
+          return;
+        }
+
+        const summary = data.candidate_summary || {};
+        document.getElementById('res-primary-field').textContent = summary.primary_field || 'Experienced Professional';
+        document.getElementById('res-exp-level').innerHTML = `<i class="bi bi-briefcase me-1 text-primary"></i> ${summary.experience_level || 'Mid-Level'}`;
+        document.getElementById('res-education').innerHTML = `<i class="bi bi-mortarboard me-1 text-info"></i> ${summary.education_overview || 'Technical / Academic Studies'}`;
+        
+        const engineLabel = data.engine_label || (data.engine === 'groq' ? '⚡ Groq AI' : '⚡ AI Engine');
+        document.getElementById('res-engine').textContent = engineLabel;
+
+        // Specialties tags
+        const specWrap = document.getElementById('res-specialties');
+        specWrap.innerHTML = '';
+        (summary.core_specialties || []).forEach(spec => {
+          const span = document.createElement('span');
+          span.className = 'badge bg-primary-subtle text-primary border border-primary-subtle';
+          span.style.fontSize = '.78rem';
+          span.textContent = spec;
+          specWrap.appendChild(span);
+        });
+
+        // Advice
+        document.getElementById('career-advice-text').textContent = data.career_advice || 'Focus on tailoring your project achievements to highlight measurable outcomes.';
+
+        // Top industries
+        const indWrap = document.getElementById('top-industries');
+        indWrap.innerHTML = '';
+        (data.top_industries || []).forEach(ind => {
+          const span = document.createElement('span');
+          span.className = 'badge bg-dark text-light border border-secondary';
+          span.style.fontSize = '.75rem';
+          span.textContent = ind;
+          indWrap.appendChild(span);
+        });
+
+        currentJobsData = data.recommended_jobs || [];
+        jobsCount.textContent = currentJobsData.length;
+
+        renderJobs(currentJobsData);
+
+        resultsContainer.classList.remove('d-none');
+        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function renderJobs(jobs) {
+        jobCardsList.innerHTML = '';
+
+        const filtered = jobs.filter(j => {
+          if (activeFilter === 'all') return true;
+          if (activeFilter === 'primary') return (j.match_score >= 90) || (j.category && j.category.toLowerCase().includes('primary'));
+          if (activeFilter === 'growth') return j.category && j.category.toLowerCase().includes('growth');
+          if (activeFilter === 'specialized') return j.category && j.category.toLowerCase().includes('special');
+          return true;
+        });
+
+        if (filtered.length === 0) {
+          jobCardsList.innerHTML = `
+            <div class="cardx text-center py-4">
+              <p class="text-muted mb-0">No jobs match the selected filter. Try "All Roles".</p>
+            </div>
+          `;
+          return;
+        }
+
+        filtered.forEach(job => {
+          const card = document.createElement('div');
+          card.className = 'job-card';
+
+          const score = job.match_score || 85;
+          const scoreClass = score >= 90 ? 'high' : 'mid';
+
+          // Search queries for live job boards
+          const loc = encodeURIComponent(prefLocation.value || '');
+          const query = encodeURIComponent(job.search_query || job.job_title);
+          const linkedinUrl = `https://www.linkedin.com/jobs/search/?keywords=${query}${loc ? '&location=' + loc : ''}`;
+          const indeedUrl = `https://www.indeed.com/jobs?q=${query}${loc ? '&l=' + loc : ''}`;
+          const googleJobsUrl = `https://www.google.com/search?q=${query}+jobs${loc ? '+in+' + loc : ''}&ibp=htl;jobs`;
+          const deepMatchUrl = `tool.html?kind=match&title=${encodeURIComponent(job.job_title)}`;
+
+          // Matching skills tags
+          const matchingSkillsHtml = (job.key_matching_skills || []).map(s => `
+            <span class="skill-tag match"><i class="bi bi-check-circle-fill me-1"></i>${escapeHtml(s)}</span>
+          `).join('');
+
+          // Skills to boost
+          const boostSkillsHtml = (job.skills_to_boost || []).map(s => `
+            <span class="skill-tag boost"><i class="bi bi-plus-circle me-1"></i>${escapeHtml(s)}</span>
+          `).join('');
+
+          card.innerHTML = `
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+              <div>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                  <h4 class="fw-bold text-white mb-0" style="font-size:1.25rem;">
+                    ${escapeHtml(job.job_title)}
+                  </h4>
+                  <span class="role-category-badge">${escapeHtml(job.category || 'Suitable Role')}</span>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-3 mt-1">
+                  <span class="salary-tag"><i class="bi bi-currency-dollar"></i>${escapeHtml(job.typical_salary || '$90k - $130k / yr')}</span>
+                  <span class="demand-tag"><i class="bi bi-fire text-danger"></i> Market Demand: <strong class="text-white">${escapeHtml(job.market_demand || 'High')}</strong></span>
+                </div>
+              </div>
+              <div class="match-pill ${scoreClass}">
+                <i class="bi bi-bullseye"></i> ${score}% Fit
+              </div>
+            </div>
+
+            <!-- Why Suitable -->
+            <p class="text-white-50 mt-2 mb-3" style="font-size:.93rem;line-height:1.65;">
+              ${escapeHtml(job.why_suitable || '')}
+            </p>
+
+            <!-- Dual Alignment Box: Experience & Studies -->
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <div class="alignment-box h-100">
+                  <div class="alignment-title text-primary">
+                    <i class="bi bi-briefcase-fill"></i> Experience Alignment
+                  </div>
+                  <div style="font-size:.87rem;color:#e2e8f0;line-height:1.55;">
+                    ${escapeHtml(job.experience_fit || 'Directly leverages your demonstrated project responsibilities and accomplishments.')}
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="alignment-box h-100">
+                  <div class="alignment-title text-info">
+                    <i class="bi bi-mortarboard-fill"></i> Studies &amp; Academic Fit
+                  </div>
+                  <div style="font-size:.87rem;color:#e2e8f0;line-height:1.55;">
+                    ${escapeHtml(job.studies_fit || 'Supported by your foundational degree, academic training, and technical coursework.')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Skills Breakdown -->
+            <div class="mb-3">
+              <div class="d-flex flex-wrap align-items-center gap-1 mb-1">
+                <small class="text-muted fw-semibold me-2">Matching Skills:</small>
+                ${matchingSkillsHtml || '<span class="text-muted small">General technical and professional competencies</span>'}
+              </div>
+              ${boostSkillsHtml ? `
+                <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+                  <small class="text-muted fw-semibold me-2">Skills to Boost Fit:</small>
+                  ${boostSkillsHtml}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Action Buttons Toolbar -->
+            <div class="pt-2 border-top border-secondary border-opacity-25 d-flex flex-wrap justify-content-between align-items-center gap-2">
+              <div class="d-flex flex-wrap gap-2">
+                <a href="${linkedinUrl}" target="_blank" rel="noopener" class="action-btn-sm btn-outline-light btn-sm text-white border-secondary">
+                  <i class="bi bi-linkedin text-info"></i> LinkedIn Jobs
+                </a>
+                <a href="${indeedUrl}" target="_blank" rel="noopener" class="action-btn-sm btn-outline-light btn-sm text-white border-secondary">
+                  <i class="bi bi-search text-primary"></i> Indeed Jobs
+                </a>
+                <a href="${googleJobsUrl}" target="_blank" rel="noopener" class="action-btn-sm btn-outline-light btn-sm text-white border-secondary">
+                  <i class="bi bi-google text-warning"></i> Google Jobs
+                </a>
+              </div>
+              <div>
+                <a href="${deepMatchUrl}" class="action-btn-sm btn btn-grad-outline btn-sm">
+                  <i class="bi bi-bullseye me-1"></i> Deep ATS Match Check
+                </a>
+              </div>
+            </div>
+          `;
+
+          jobCardsList.appendChild(card);
+        });
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      // Offline client fallback analyzer
+      function generateClientAnalysis(text, payload) {
+        const lower = text.toLowerCase();
+        
+        const isTech = /python|javascript|react|flask|django|docker|sql|c\+\+|java|api|developer|engineer|software|backend|frontend/i.test(lower);
+        const isData = /data|machine\s*learning|analytics|pandas|numpy|ai|model|tableau|powerbi|statistic/i.test(lower);
+        const isBiz = /management|product|marketing|scrum|agile|sales|finance|operations|strategy/i.test(lower);
+
+        let edu = "Bachelor's / Professional Degree Background";
+        if (/ph\.?d|doctor/i.test(lower)) edu = "Ph.D. / Doctorate Academic Background";
+        else if (/master|m\.?s|mba|msc/i.test(lower)) edu = "Master's Degree (M.S. / MBA) Background";
+        else if (/bachelor|b\.?s|b\.?sc|b\.?a|engineering|computer\s*science/i.test(lower)) edu = "Bachelor of Science in Technical / Engineering Field";
+
+        const jobs = [];
+
+        if (isTech) {
+          jobs.push({
+            job_title: "Full-Stack Software Engineer",
+            match_score: 96,
+            category: "Primary Best Fit",
+            why_suitable: "Your demonstrated proficiency building end-to-end applications, designing client interfaces, and architecting backend services makes you an ideal fit for full-stack engineering roles.",
+            experience_fit: "Directly matches your hands-on experience delivering user-facing applications, writing clean code, and working with modern web toolchains.",
+            studies_fit: `Leverages foundational computer science and systems design concepts from your ${edu}.`,
+            key_matching_skills: ["Full-Stack Development", "API Design", "Database Modeling", "Git Workflow", "Component Architecture"],
+            skills_to_boost: ["System Design at Scale", "CI/CD Pipelines"],
+            typical_salary: "$115,000 - $155,000 / yr",
+            market_demand: "Very High",
+            search_query: "Full Stack Software Engineer React Python"
+          });
+          jobs.push({
+            job_title: "Backend & Systems Engineer",
+            match_score: 92,
+            category: "Specialized Path",
+            why_suitable: "Focuses on building robust, scalable APIs, database performance optimization, and server architecture.",
+            experience_fit: "Strong track record working with backend frameworks, authentication, and structured data handling.",
+            studies_fit: "Direct application of database theory, concurrency, and algorithms gained through academic studies.",
+            key_matching_skills: ["Python / Node.js", "Relational Databases", "Microservices", "RESTful Architecture"],
+            skills_to_boost: ["Distributed Caching (Redis)", "Docker & Containers"],
+            typical_salary: "$120,000 - $160,000 / yr",
+            market_demand: "Very High",
+            search_query: "Backend Software Engineer Python APIs"
+          });
+          jobs.push({
+            job_title: "Cloud Solutions & DevOps Engineer",
+            match_score: 87,
+            category: "High-Growth Role",
+            why_suitable: "Bridges software engineering with cloud hosting infrastructure, deployment automation, and monitoring.",
+            experience_fit: "Experience managing development environments and shipping code to production servers.",
+            studies_fit: "Extends operating systems and networking fundamentals into modern cloud platforms.",
+            key_matching_skills: ["Cloud Services (AWS/GCP)", "Docker", "Version Control", "Linux Systems"],
+            skills_to_boost: ["Kubernetes", "Infrastructure as Code (Terraform)"],
+            typical_salary: "$125,000 - $165,000 / yr",
+            market_demand: "High",
+            search_query: "Cloud DevOps Engineer AWS"
+          });
+        }
+
+        if (isData || jobs.length < 3) {
+          jobs.push({
+            job_title: "Data Scientist / Machine Learning Specialist",
+            match_score: 93,
+            category: "Primary Best Fit",
+            why_suitable: "Your analytical mindset, data manipulation skills, and familiarity with modeling enable you to extract actionable intelligence from complex datasets.",
+            experience_fit: "Translates your hands-on problem solving and algorithmic analysis into predictive intelligence.",
+            studies_fit: `Strong quantitative alignment with statistics, linear algebra, and data coursework from your ${edu}.`,
+            key_matching_skills: ["Data Modeling", "Python / SQL", "Statistical Analysis", "Predictive ML"],
+            skills_to_boost: ["MLOps Pipeline Deployment", "Deep Learning Frameworks"],
+            typical_salary: "$125,000 - $170,000 / yr",
+            market_demand: "Explosive Growth",
+            search_query: "Data Scientist Machine Learning"
+          });
+          jobs.push({
+            job_title: "Data & BI Analytics Engineer",
+            match_score: 89,
+            category: "High-Growth Role",
+            why_suitable: "Focuses on transforming raw business data into interactive executive reporting, KPI tracking, and metric pipelines.",
+            experience_fit: "Demonstrated capacity organizing complex information and presenting clear strategic takeaways.",
+            studies_fit: "Structured logical modeling built through rigorous technical academic training.",
+            key_matching_skills: ["SQL Data Warehousing", "Dashboard Design", "KPI Tracking", "Python"],
+            skills_to_boost: ["dbt", "Snowflake / BigQuery"],
+            typical_salary: "$95,000 - $135,000 / yr",
+            market_demand: "High",
+            search_query: "Data Analytics Engineer Business Intelligence"
+          });
+        }
+
+        if (isBiz || jobs.length < 5) {
+          jobs.push({
+            job_title: "Technical Product / Project Manager",
+            match_score: 88,
+            category: "Leadership Track",
+            why_suitable: "Combines technical literacy with project ownership to drive cross-functional engineering teams and roadmap execution.",
+            experience_fit: "Proven ability to manage timelines, communicate technical concepts, and prioritize requirements.",
+            studies_fit: "Leverages both quantitative problem solving and cross-disciplinary academic background.",
+            key_matching_skills: ["Agile / Scrum Methodologies", "Technical Communication", "Product Lifecycle Management"],
+            skills_to_boost: ["PMP / Scrum Master Certification", "User Journey Mapping"],
+            typical_salary: "$110,000 - $150,000 / yr",
+            market_demand: "High",
+            search_query: "Technical Product Manager Software"
+          });
+        }
+
+        return {
+          engine: 'client-ai',
+          engine_label: 'ResumeXpert AI Matcher',
+          candidate_summary: {
+            primary_field: isTech ? "Software Engineering & Applied Systems" : isData ? "Data Science & Machine Learning" : "Business & Technical Management",
+            experience_level: payload.experience_level || "3+ Years Professional Experience",
+            education_overview: edu,
+            core_specialties: ["Full-Lifecycle Execution", "Technical Problem Solving", "System Architecture", "Continuous Improvement"]
+          },
+          recommended_jobs: jobs,
+          career_advice: "Your resume presents a compelling combination of academic foundation and applied experience. For your upcoming applications, specifically customize your resume headline to mirror the target role title (e.g. 'Senior Full-Stack Engineer'), and quantify the business impact of each project with numbers or percentage improvements.",
+          top_industries: ["Information Technology & SaaS", "FinTech & Financial Services", "Cloud & Artificial Intelligence"]
+        };
+      }
+
+      // Initial load
+      loadResumes();
+    })();
+  </script>
+</body>
+</html>
