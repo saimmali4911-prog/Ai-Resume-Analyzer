@@ -609,9 +609,6 @@
               <button class="btn btn-grad-outline btn-sm px-3 text-white" id="btn-download-docx">
                 <i class="bi bi-file-earmark-word-fill me-1"></i> Download DOCX
               </button>
-              <button class="btn btn-outline-light btn-sm px-2.5" id="btn-print" title="Print document">
-                <i class="bi bi-printer"></i>
-              </button>
             </div>
           </div>
 
@@ -790,9 +787,6 @@
 
         // Download DOCX
         document.getElementById('btn-download-docx')?.addEventListener('click', () => this.exportDOCX());
-
-        // Print
-        document.getElementById('btn-print')?.addEventListener('click', () => window.print());
       },
 
       populateForm() {
@@ -1231,8 +1225,7 @@
         }).catch(err => {
           console.error(err);
           if (btn) btn.innerHTML = origText;
-          // Fallback to browser print dialog
-          window.print();
+          alert('Could not export PDF automatically. Please check your browser popup/download settings.');
         });
       },
 
