@@ -482,8 +482,9 @@ def recommend_jobs_api():
         except (ValueError, TypeError):
             pass
 
-    if not resume_text:
-        resume_text = (data.get('resume_text') or '').strip()
+    req_text = (data.get('resume_text') or '').strip()
+    if not resume_text or (req_text and len(req_text) > len(resume_text)):
+        resume_text = req_text
 
     if not resume_text or len(resume_text.strip()) < 50:
         return jsonify({'error': 'Please select a valid resume or provide at least 50 characters of resume text.'}), 400
@@ -491,7 +492,9 @@ def recommend_jobs_api():
     preferences = {
         'location': (data.get('location') or '').strip(),
         'experience_level': (data.get('experience_level') or '').strip(),
-        'industry': (data.get('industry') or '').strip()
+        'industry': (data.get('industry') or '').strip(),
+        'api_key': (data.get('api_key') or '').strip(),
+        'provider': (data.get('provider') or '').strip()
     }
 
     try:

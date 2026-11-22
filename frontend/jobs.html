@@ -265,16 +265,44 @@
           <input type="text" class="form-control" id="pref-location" placeholder="e.g. Remote, Hybrid, USA, UK">
         </div>
 
-        <!-- Optional: Direct Text Input Toggle -->
+        <!-- Optional: Direct Text Input & AI Key Settings -->
         <div class="col-12 mt-2">
-          <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <a href="javascript:void(0)" class="text-decoration-none small text-grad fw-semibold" id="toggle-text-btn">
               <i class="bi bi-textarea-t me-1"></i> Or paste / edit CV text directly
             </a>
+            <a href="javascript:void(0)" class="text-decoration-none small text-warning fw-semibold" id="toggle-key-btn">
+              <i class="bi bi-key-fill me-1"></i> AI API Key Settings <span class="badge bg-warning-subtle text-warning border border-warning-subtle ms-1" style="font-size:.7rem;" id="key-status-badge">AI Active</span>
+            </a>
           </div>
+
+          <!-- Direct CV Text Input -->
           <div id="text-input-wrap" class="mt-2 d-none">
             <textarea class="form-control font-monospace" id="resume-text-input" rows="6" placeholder="Paste your resume or CV text here..."></textarea>
             <div class="form-text text-muted">Provide at least 50 characters of experience, studies, and skills.</div>
+          </div>
+
+          <!-- AI API Key Settings Accordion / Box -->
+          <div id="key-settings-wrap" class="mt-2 p-3 rounded-3 d-none" style="background:var(--surface2); border:1px solid var(--border);">
+            <div class="row g-2 align-items-center">
+              <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">AI Provider</label>
+                <select class="form-select form-select-sm" id="ai-provider-select">
+                  <option value="groq" selected>⚡ Groq AI (Ultra Fast)</option>
+                  <option value="gemini">✨ Google Gemini AI</option>
+                </select>
+              </div>
+              <div class="col-md-8">
+                <label class="form-label small text-muted mb-1">Custom AI API Key (Optional)</label>
+                <div class="input-group input-group-sm">
+                  <input type="password" class="form-control" id="custom-ai-key" placeholder="System API key is active. Enter your key to override...">
+                  <button class="btn btn-outline-secondary" type="button" id="btn-save-key"><i class="bi bi-check2"></i> Save</button>
+                </div>
+                <div class="form-text text-muted small" style="font-size:.75rem;">
+                  The AI analyzes your CV's exact work experience, degrees, studies, and skills to generate tailored jobs.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -428,6 +456,45 @@
         }
       });
 
+      // AI API Key settings toggle and persistence
+      const toggleKeyBtn = document.getElementById('toggle-key-btn');
+      const keySettingsWrap = document.getElementById('key-settings-wrap');
+      const customAiKeyInput = document.getElementById('custom-ai-key');
+      const aiProviderSelect = document.getElementById('ai-provider-select');
+      const btnSaveKey = document.getElementById('btn-save-key');
+      const keyStatusBadge = document.getElementById('key-status-badge');
+
+      // Load saved custom key & provider if available
+      const savedCustomKey = localStorage.getItem('custom_ai_api_key') || '';
+      const savedProvider = localStorage.getItem('ai_provider') || 'groq';
+      if (customAiKeyInput && savedCustomKey) customAiKeyInput.value = savedCustomKey;
+      if (aiProviderSelect && savedProvider) aiProviderSelect.value = savedProvider;
+
+      toggleKeyBtn?.addEventListener('click', () => {
+        if (!keySettingsWrap) return;
+        const isHidden = keySettingsWrap.classList.contains('d-none');
+        if (isHidden) {
+          keySettingsWrap.classList.remove('d-none');
+          toggleKeyBtn.innerHTML = '<i class="bi bi-chevron-up me-1"></i> Close AI Settings';
+        } else {
+          keySettingsWrap.classList.add('d-none');
+          toggleKeyBtn.innerHTML = '<i class="bi bi-key-fill me-1"></i> AI API Key Settings <span class="badge bg-warning-subtle text-warning border border-warning-subtle ms-1" style="font-size:.7rem;" id="key-status-badge">AI Active</span>';
+        }
+      });
+
+      btnSaveKey?.addEventListener('click', () => {
+        const val = customAiKeyInput?.value.trim() || '';
+        const prov = aiProviderSelect?.value || 'groq';
+        if (val) {
+          localStorage.setItem('custom_ai_api_key', val);
+        } else {
+          localStorage.removeItem('custom_ai_api_key');
+        }
+        localStorage.setItem('ai_provider', prov);
+        showAlert('AI API Key settings updated successfully!', 'success');
+        setTimeout(clearAlert, 3000);
+      });
+
       function showAlert(msg, type = 'danger') {
         alertBox.innerHTML = `
           <div class="alert alert-${type} alert-dismissible fade show" role="alert">
@@ -510,7 +577,7 @@
       async function handleFindJobs() {
         clearAlert();
         const selectedId = resumeSelect.value;
-        const manualText = resumeTextInput.value.trim();
+        let manualText = resumeTextInput.value.trim();
 
         if (!selectedId && (!manualText || manualText.length < 50)) {
           showAlert('Please select an uploaded resume or paste at least 50 characters of your CV text.');
@@ -521,28 +588,54 @@
         loadingState.classList.remove('d-none');
         resultsContainer.classList.add('d-none');
         btnFindJobs.disabled = true;
-        btnFindJobs.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing Your Background...';
+        btnFindJobs.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analyzing Your CV with AI Engine...';
+
+        // 1. Ensure we retrieve the resume text upfront if not yet loaded
+        if (!manualText && selectedId) {
+          try {
+            const textRes = await API.resumes.getText(selectedId);
+            if (textRes && textRes.text) {
+              manualText = textRes.text;
+            }
+          } catch (tErr) {
+            console.warn('Could not auto-fetch text:', tErr);
+          }
+        }
+
+        const customKey = (customAiKeyInput?.value || '').trim() || localStorage.getItem('custom_ai_api_key') || '';
+        const aiProvider = aiProviderSelect?.value || localStorage.getItem('ai_provider') || 'groq';
 
         const payload = {
           resume_id: selectedId ? parseInt(selectedId) : null,
           resume_text: manualText,
           experience_level: prefLevel.value,
-          location: prefLocation.value
+          location: prefLocation.value,
+          api_key: customKey,
+          provider: aiProvider
         };
 
         try {
           let responseData = null;
 
-          // Attempt backend API call
+          // Attempt 1: Call Backend AI Endpoint
           try {
             responseData = await API.jobs.recommend(payload);
           } catch (apiErr) {
-            console.warn('Backend /api/jobs/recommend error, trying fallback:', apiErr);
+            console.warn('Backend /api/jobs/recommend error, trying direct AI API:', apiErr);
           }
 
-          // If backend didn't return proper result, run intelligent client fallback
+          // Attempt 2: If backend returned no AI result or failed, call Groq AI API / Gemini API directly using AI key!
+          if (!responseData || !responseData.result || !responseData.result.recommended_jobs || responseData.result.recommended_jobs.length === 0) {
+            if (manualText && manualText.length >= 30) {
+              const directAiResult = await callDirectAI(manualText, payload, aiProvider, customKey);
+              if (directAiResult) {
+                responseData = directAiResult;
+              }
+            }
+          }
+
+          // Attempt 3: Intelligent dynamic fallback based on CV text if completely offline
           if (!responseData || !responseData.result || !responseData.result.recommended_jobs) {
-            // Fetch text if needed
             let textToAnalyze = manualText;
             if (!textToAnalyze && selectedId) {
               const textRes = await API.resumes.getText(selectedId);
@@ -553,7 +646,6 @@
               throw new Error('Unable to read resume text. Please paste your CV text directly.');
             }
 
-            // Build client fallback result
             responseData = {
               success: true,
               result: generateClientAnalysis(textToAnalyze, payload)
@@ -563,12 +655,147 @@
           displayResults(responseData.result);
         } catch (err) {
           console.error(err);
-          showAlert(err.message || 'Error finding suitable jobs. Please try again.');
+          showAlert(err.message || 'Error finding suitable jobs with AI. Please try again.');
         } finally {
           loadingState.classList.add('d-none');
           btnFindJobs.disabled = false;
           btnFindJobs.innerHTML = '<i class="bi bi-stars me-2"></i> Find Suitable Jobs For My Profile';
         }
+      }
+
+      // Direct client-side AI API caller (uses Groq or Gemini AI Key)
+      async function callDirectAI(resumeText, payload, provider, customKey) {
+        const prompt = `You are an elite executive recruiter, talent advisor, and technical career coach.
+Thoroughly examine this candidate's resume, specifically analyzing:
+1. Work Experience & Career Trajectory (roles, achievements, responsibilities, leadership, domain experience)
+2. Studies & Academic Background (degrees, major, field of study, specialized coursework, academic honors)
+3. Technical & Professional Skills (languages, tools, frameworks, methodologies, soft skills)
+4. Overall background and competitive differentiators
+
+Target Career Level: ${payload.experience_level || 'Auto-Detect'}
+Target Location / Work Style: ${payload.location || 'Flexible'}
+
+Resume Content:
+"""${resumeText.slice(0, 6000)}"""
+
+Generate 5 to 7 highly suitable, realistic job titles this candidate qualifies for right now or is primed to step into, tailored directly to their experience, studies, and background.
+
+Return a valid JSON object strictly matching this schema:
+{
+  "candidate_summary": {
+    "primary_field": "<e.g., Software Engineering & Cloud Infrastructure>",
+    "experience_level": "<e.g., Mid-Level (3-5 years) or Senior>",
+    "education_overview": "<e.g., Bachelor of Science in Computer Science & Engineering>",
+    "core_specialties": ["<specialty 1>", "<specialty 2>", "<specialty 3>", "<specialty 4>"]
+  },
+  "recommended_jobs": [
+    {
+      "job_title": "<e.g., Full Stack Engineer>",
+      "match_score": 95,
+      "category": "<Primary Best Fit | High-Growth Role | Leadership Track | Specialized Path>",
+      "why_suitable": "<2-3 compelling sentences explaining why this matches their specific experience, studies, and background>",
+      "experience_fit": "<Clear breakdown of how their past job duties and projects directly translate to success in this role>",
+      "studies_fit": "<How their degree, coursework, or academic background provides the foundational knowledge required>",
+      "key_matching_skills": ["<skill 1>", "<skill 2>", "<skill 3>", "<skill 4>", "<skill 5>"],
+      "skills_to_boost": ["<skill 1>", "<skill 2>"],
+      "typical_salary": "<e.g., $105,000 - $135,000 / yr>",
+      "market_demand": "<High | Very High | Explosive Growth>",
+      "search_query": "<Keywords to search for this exact role on LinkedIn / Indeed>"
+    }
+  ],
+  "career_advice": "<2-3 strategic, actionable paragraphs advising the candidate on how to leverage their studies, position their past experience, and tailor applications for top interviews>",
+  "top_industries": ["<Industry 1>", "<Industry 2>", "<Industry 3>"]
+}`;
+
+        // 1. Groq AI API
+        const groqKey = (provider === 'groq' && customKey) ? customKey : (customKey || localStorage.getItem('custom_ai_api_key') || localStorage.getItem('GROQ_API_KEY') || '');
+        const groqModels = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b', 'llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
+
+        if (provider !== 'gemini' && groqKey) {
+          for (const model of groqModels) {
+            try {
+              const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${groqKey}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: model,
+                  messages: [
+                    {
+                      role: 'system',
+                      content: 'You are an elite career coach and executive recruiter. Always respond strictly with a valid JSON object matching the requested schema, with no markdown fences, no preamble, and no extra commentary.'
+                    },
+                    { role: 'user', content: prompt }
+                  ],
+                  response_format: { type: 'json_object' },
+                  temperature: 0.2
+                })
+              });
+              if (!res.ok) continue;
+              const data = await res.json();
+              const raw = data.choices?.[0]?.message?.content;
+              if (raw) {
+                const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+                const parsed = JSON.parse(cleaned);
+                if (parsed && parsed.recommended_jobs && parsed.recommended_jobs.length > 0) {
+                  return {
+                    success: true,
+                    result: {
+                      engine: 'groq',
+                      engine_label: `⚡ Groq AI (${model})`,
+                      ...parsed
+                    }
+                  };
+                }
+              }
+            } catch (err) {
+              console.warn(`Direct Groq call on ${model} error:`, err);
+            }
+          }
+        }
+
+        // 2. Google Gemini AI API
+        if (customKey && (provider === 'gemini' || customKey.startsWith('AIza'))) {
+          const geminiModels = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+          for (const gm of geminiModels) {
+            try {
+              const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${gm}:generateContent?key=${customKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: {
+                    responseMimeType: "application/json",
+                    temperature: 0.2
+                  }
+                })
+              });
+              if (!res.ok) continue;
+              const data = await res.json();
+              const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (text) {
+                const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+                const parsed = JSON.parse(cleaned);
+                if (parsed && parsed.recommended_jobs && parsed.recommended_jobs.length > 0) {
+                  return {
+                    success: true,
+                    result: {
+                      engine: 'gemini',
+                      engine_label: `✨ Google Gemini AI (${gm})`,
+                      ...parsed
+                    }
+                  };
+                }
+              }
+            } catch (gErr) {
+              console.warn(`Direct Gemini call error:`, gErr);
+            }
+          }
+        }
+
+        return null;
       }
 
       btnFindJobs?.addEventListener('click', handleFindJobs);

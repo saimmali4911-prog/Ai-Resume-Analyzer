@@ -37,9 +37,9 @@ def _get_groq_api_key():
         return None
     return api_key
 
-def _call_groq(prompt):
+def _call_groq(prompt, api_key=None):
     """Call Groq with JSON output format using fast LLMs."""
-    api_key = _get_groq_api_key()
+    api_key = api_key or _get_groq_api_key()
     if not api_key:
         return None, None
 
@@ -101,14 +101,22 @@ def _get_gemini_client():
         logger.warning(f"Failed to initialize Gemini client: {e}")
         return None, None
 
-def _call_gemini(prompt):
-    """Call Gemini with JSON output format, trying 2.5-flash then 1.5-flash."""
-    client, _ = _get_gemini_client()
+def _call_gemini(prompt, api_key=None):
+    """Call Gemini with JSON output format, trying 2.0-flash then 1.5-flash."""
+    client = None
+    if api_key:
+        try:
+            from google import genai
+            client = genai.Client(api_key=api_key)
+        except Exception as e:
+            logger.warning(f"Failed to initialize custom Gemini client: {e}")
+    if not client:
+        client, _ = _get_gemini_client()
     if not client:
         return None
 
     from google.genai import types
-    models = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash']
+    models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']
     for m in models:
         try:
             response = client.models.generate_content(
@@ -128,15 +136,23 @@ def _call_gemini(prompt):
             continue
     return None
 
-def _call_llm(prompt):
+def _call_llm(prompt, custom_key=None, provider=None):
     """Try Groq first (ultra-fast), fallback to Gemini, return (parsed_json, engine_id, engine_label)."""
-    # 1. Groq AI
-    groq_res, groq_label = _call_groq(prompt)
+    # Custom provider preference
+    if provider == 'gemini' and custom_key:
+        gemini_res = _call_gemini(prompt, api_key=custom_key)
+        if gemini_res:
+            return gemini_res, 'gemini', 'Google Gemini AI (Custom Key)'
+
+    # 1. Groq AI (default or custom key)
+    groq_key = custom_key if (provider == 'groq' or (custom_key and not provider)) else None
+    groq_res, groq_label = _call_groq(prompt, api_key=groq_key)
     if groq_res:
         return groq_res, 'groq', groq_label or 'Groq AI'
 
     # 2. Gemini AI
-    gemini_res = _call_gemini(prompt)
+    gemini_key = custom_key if provider == 'gemini' else None
+    gemini_res = _call_gemini(prompt, api_key=gemini_key)
     if gemini_res:
         return gemini_res, 'gemini', 'Google Gemini AI'
 
@@ -741,7 +757,9 @@ Return a valid JSON object strictly matching this schema:
   "top_industries": ["<Industry 1>", "<Industry 2>", "<Industry 3>"]
 }}
 """
-    ai_result, engine_id, engine_label = _call_llm(prompt)
+    custom_key = preferences.get('api_key') if preferences else None
+    provider = preferences.get('provider') if preferences else None
+    ai_result, engine_id, engine_label = _call_llm(prompt, custom_key=custom_key, provider=provider)
     if ai_result and isinstance(ai_result, dict) and 'recommended_jobs' in ai_result and isinstance(ai_result['recommended_jobs'], list):
         try:
             return {
